@@ -1,0 +1,137 @@
+.dive-sites-list-container {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.dive-sites-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.dive-sites-header h2 {
+  margin: 0;
+  color: #1a73e8;
+}
+
+.add-button {
+  display: inline-block;
+  background-color: #1a73e8;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.add-button:hover {
+  background-color: #0d5bba;
+}
+
+.no-data {
+  text-align: center;
+  padding: 3rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.no-data p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.loading,
+.error {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #d32f2f;
+}
+
+.dive-sites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.dive-site-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dive-site-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.dive-site-card h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #1a73e8;
+  font-size: 1.3rem;
+}
+
+.dive-site-card p {
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.edit-button,
+.delete-button {
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.edit-button {
+  background-color: #e3f2fd;
+  color: #1a73e8;
+  text-decoration: none;
+  border: 1px solid #bbdefb;
+}
+
+.edit-button:hover {
+  background-color: #bbdefb;
+}
+
+.delete-button {
+  background-color: transparent;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+}
+
+.delete-button:hover {
+  background-color: #ffebee;
+}
+
+@media (max-width: 768px) {
+  .dive-sites-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .dive-sites-grid {
+    grid-template-columns: 1fr;
+  }
+}
