@@ -51,7 +51,9 @@ const DiveMap = () => {
                   </p>
                   <p>
                     <strong>Date:</strong>{" "}
-                    {new Date(site.date).toLocaleDateString()}
+                    {site.date instanceof Date
+                      ? site.date.toLocaleDateString()
+                      : "Unknown date"}
                   </p>
                   {site.notes && (
                     <p>
