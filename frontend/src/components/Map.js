@@ -16,6 +16,11 @@ let DefaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 
+// Apply DefaultIcon as the Leaflet default so React-Leaflet markers have icons when
+// using the built-in marker component. This uses the variable so ESLint doesn't
+// report it as unused and preserves the original fallback behavior.
+L.Marker.prototype.options.icon = DefaultIcon;
+
 // Instead of a global default, create deterministic per-site colored icons.
 const hashColor = (str) => {
   if (!str) return "#3498db";

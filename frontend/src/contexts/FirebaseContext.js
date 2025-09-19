@@ -77,7 +77,7 @@ export const FirebaseProvider = ({ children }) => {
         if (isMounted) {
           setError("Failed to load dive sites. Please try again.");
           // Even if there's an error, we'll still try to use any cached sites
-          console.log("FirebaseContext: Using cached dive sites:", diveSites);
+          console.log("FirebaseContext: Using cached dive sites (state may be stale)");
         }
       } finally {
         if (isMounted) {
@@ -86,7 +86,7 @@ export const FirebaseProvider = ({ children }) => {
       }
     };
 
-    loadDiveSites();
+  loadDiveSites();
 
     // Cleanup function to prevent state updates if the component unmounts
     return () => {

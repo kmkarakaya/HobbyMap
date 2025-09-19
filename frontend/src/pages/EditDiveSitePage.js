@@ -6,7 +6,7 @@ import DiveSiteForm from "../components/DiveSiteForm";
 const EditDiveSitePage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getDiveSite, updateDiveSite, loading, error } = useFirebase();
+  const { getDiveSite, updateDiveSite, diveSites } = useFirebase();
   const [diveSite, setDiveSite] = useState(null);
   const [loadingDiveSite, setLoadingDiveSite] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -25,7 +25,7 @@ const EditDiveSitePage = () => {
     };
 
     fetchDiveSite();
-  }, [id, getDiveSite]);
+  }, [id, getDiveSite, diveSites]);
 
   const handleSubmit = async (formData) => {
     try {
