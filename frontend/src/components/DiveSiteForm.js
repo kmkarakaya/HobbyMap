@@ -114,6 +114,27 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
 
   const { siteName, place, country, date, notes } = formData;
 
+  // Handle country selection change for react-select
+  const handleCountryChange = (selectedOption) => {
+    // If there was an error, clear it when the user starts typing again
+    if (error) {
+      setError(null);
+    }
+    if (firebaseError) {
+      clearError();
+    }
+
+    const countryValue = selectedOption ? selectedOption.value : "";
+    console.log("Country changed to:", countryValue);
+
+    // Update form data
+    setFormData((prevData) => {
+      const newData = { ...prevData, country: countryValue };
+      console.log("Updated form data:", newData);
+      return newData;
+    });
+  };
+
   const onChange = (e) => {
     // If there was an error, clear it when the user starts typing again
     if (error) {
@@ -207,21 +228,28 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
 
         <div className="form-group">
           <label htmlFor="country">Country*</label>
-          <select
+          <Select
             id="country"
             name="country"
-            value={country}
-            onChange={onChange}
-            required
-          >
-            <option value="">-- Select country --</option>
-            {countries.map((c) => (
-              <option key={c.code} value={c.name}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <small>Select the country for the dive site</small>
+            value={countries.find(c => c.name === country) ? { value: country, label: country } : null}
+            onChange={handleCountryChange}
+            options={countries.map(c => ({ value: c.name, label: `${c.name} (${c.code})` }))}
+            placeholder="Search and select country..."
+            isSearchable={true}
+            isClearable={true}
+            styles={{
+              control: (provided) => ({
+                ...provided,
+                minHeight: '38px',
+                border: '1px solid #ccc',
+                boxShadow: 'none',
+                '&:hover': {
+                  border: '1px solid #007bff'
+                }
+              })
+            }}
+          />
+          <small>Search or select the country for the dive site</small>
         </div>
 
   {/* Using separate place and country fields (no combined location) */}
