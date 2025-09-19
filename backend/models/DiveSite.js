@@ -7,9 +7,14 @@ const diveSchema = new mongoose.Schema(
       required: [true, "Please enter a dive site name"],
       trim: true,
     },
-    location: {
+    place: {
       type: String,
-      required: [true, "Please enter a location (city/town)"],
+      required: [true, "Please enter a place (city/town/site)"],
+      trim: true,
+    },
+    country: {
+      type: String,
+      required: [true, "Please enter a country"],
       trim: true,
     },
     latitude: {

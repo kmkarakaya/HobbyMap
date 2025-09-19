@@ -15,10 +15,11 @@
     "react-leaflet": "^4.2.1",
     "react-router-dom": "^6.20.1",
     "react-scripts": "5.0.1",
+    "react-select": "^5.10.2",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node ./scripts/start-silence-deprecations.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -52,11 +52,12 @@ exports.getDiveSite = async (req, res) => {
 // @access  Public
 exports.createDiveSite = async (req, res) => {
   try {
-    const { location } = req.body;
+    const { place, country } = req.body;
 
-    // Get lat/lng from location
-    if (location) {
-      const coordinates = await geocodeLocation(location);
+    // Compose a query for geocoding using place and country
+    const q = place && country ? `${place}, ${country}` : place || country || null;
+    if (q) {
+      const coordinates = await geocodeLocation(q);
       req.body.latitude = coordinates.latitude;
       req.body.longitude = coordinates.longitude;
     }
@@ -89,11 +90,11 @@ exports.createDiveSite = async (req, res) => {
 // @access  Public
 exports.updateDiveSite = async (req, res) => {
   try {
-    const { location } = req.body;
+    const { place, country } = req.body;
 
-    // Get lat/lng from location if changed
-    if (location) {
-      const coordinates = await geocodeLocation(location);
+    const q = place && country ? `${place}, ${country}` : place || country || null;
+    if (q) {
+      const coordinates = await geocodeLocation(q);
       req.body.latitude = coordinates.latitude;
       req.body.longitude = coordinates.longitude;
     }

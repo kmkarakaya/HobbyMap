@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
+import Select from "react-select";
 import "./DiveSiteForm.css";
+import countries from "../data/countries";
 // Import the test functions
 import {
   testFirebaseWrite,
@@ -14,7 +16,8 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
 
   const [formData, setFormData] = useState({
     siteName: "",
-    location: "",
+    place: "", // city/town/site
+    country: "",
     date: "",
     notes: "",
   });
@@ -62,13 +65,13 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
         console.log("Formatted from Firestore timestamp:", formattedDate);
       }
 
+      // Initialize place and country directly from initialData (MVP)
       setFormData({
         siteName: initialData.siteName || "",
-        location: initialData.location || "",
+        place: initialData.place || "",
+        country: initialData.country || "",
         date: formattedDate,
         notes: initialData.notes || "",
-        // Store original data for comparison
-        originalLocation: initialData.location || "",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +112,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
     }
   };
 
-  const { siteName, location, date, notes } = formData;
+  const { siteName, place, country, date, notes } = formData;
 
   const onChange = (e) => {
     // If there was an error, clear it when the user starts typing again
@@ -120,16 +123,17 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
       clearError();
     }
 
-    const { name, value } = e.target;
+  const { name, value } = e.target;
 
     // Add debug logging for location changes
-    if (name === "location") {
-      console.log("Location changed to:", value);
+    if (name === "place" || name === "country") {
+      console.log(`${name} changed to:`, value);
     }
 
     // Update form data
     setFormData((prevData) => {
       const newData = { ...prevData, [name]: value };
+      // No combined location - we only track place and country for MVP
       console.log("Updated form data:", newData);
       return newData;
     });
@@ -138,7 +142,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-    if (!siteName || !location || !date) {
+    if (!siteName || !place || !country || !date) {
       setError("Please fill all required fields");
       return;
     }
@@ -147,12 +151,13 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
       setLoading(true);
       console.log("Submitting form data:", formData);
 
+      // MVP payload: only include place and country (no combined location)
+      const payload = { ...formData, place: formData.place, country: formData.country };
+
       if (isEditing && onSubmit) {
-        // Use the provided onSubmit function for editing
-        await onSubmit(formData);
+        await onSubmit(payload);
       } else {
-        // Default behavior for creating
-        await createDiveSite(formData);
+        await createDiveSite(payload);
       }
 
       setLoading(false);
@@ -187,18 +192,39 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
         </div>
 
         <div className="form-group">
-          <label htmlFor="location">Location*</label>
+          <label htmlFor="place">Site (city / town / site)*</label>
           <input
             type="text"
-            id="location"
-            name="location"
-            value={location}
+            id="place"
+            name="place"
+            value={place}
             onChange={onChange}
             required
-            placeholder="Enter city or location name"
+            placeholder="Enter city, town or specific site name"
           />
           <small>Enter a city, town, or specific location name</small>
         </div>
+
+        <div className="form-group">
+          <label htmlFor="country">Country*</label>
+          <select
+            id="country"
+            name="country"
+            value={country}
+            onChange={onChange}
+            required
+          >
+            <option value="">-- Select country --</option>
+            {countries.map((c) => (
+              <option key={c.code} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <small>Select the country for the dive site</small>
+        </div>
+
+  {/* Using separate place and country fields (no combined location) */}
 
         <div className="form-group">
           <label htmlFor="date">Date*</label>

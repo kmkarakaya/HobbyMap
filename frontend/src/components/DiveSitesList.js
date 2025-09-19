@@ -67,7 +67,8 @@ const DiveSitesList = () => {
             <div className="dive-site-card" key={site.id}>
               <h3>{site.siteName}</h3>
               <p>
-                <strong>Location:</strong> {site.location}
+                <strong>Location:</strong>{" "}
+                {site.place || site.country ? `${site.place || ""}${site.place && site.country ? ", " : ""}${site.country || ""}` : ""}
               </p>
               <p>
                 <strong>Date:</strong>{" "}

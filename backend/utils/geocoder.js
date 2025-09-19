@@ -13,9 +13,10 @@ const geocoder = NodeGeocoder(options);
  * @param {string} location - Location string (city, address, etc.)
  * @returns {Promise<{latitude: number, longitude: number}>} - Coordinates
  */
-const geocodeLocation = async (location) => {
+const geocodeLocation = async (placeOrLocation, country) => {
   try {
-    const res = await geocoder.geocode(location);
+    const q = country ? `${placeOrLocation}, ${country}` : placeOrLocation;
+    const res = await geocoder.geocode(q);
 
     if (res && res.length > 0) {
       const { latitude, longitude } = res[0];

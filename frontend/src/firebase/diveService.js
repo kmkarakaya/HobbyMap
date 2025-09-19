@@ -150,8 +150,11 @@ export const createDiveSite = async (diveSiteData) => {
 
     if (!newDiveSite.latitude || !newDiveSite.longitude) {
       try {
-        console.log("Attempting to geocode location:", newDiveSite.location);
-        const geoData = await geocodeLocation(newDiveSite.location);
+        // Use place and country for geocoding (MVP)
+        const place = newDiveSite.place || null;
+        const country = newDiveSite.country || null;
+        console.log("Attempting to geocode with:", { place, country });
+        const geoData = await geocodeLocation(place, country);
         if (geoData) {
           newDiveSite.latitude = geoData.latitude;
           newDiveSite.longitude = geoData.longitude;
@@ -211,14 +214,16 @@ export const updateDiveSite = async (id, updateData) => {
 
     let dataToUpdate = { ...updateData };
 
-    // Preserve the user's entered location value
-    const userEnteredLocation = updateData.location;
-    const existingLocation = existingData.location;
-    const locationHasChanged = userEnteredLocation !== existingLocation;
+  // Compare place/country for change detection
+  const userPlace = updateData.place;
+  const userCountry = updateData.country;
+  const existingPlace = existingData.place;
+  const existingCountry = existingData.country;
+  const locationHasChanged = userPlace !== existingPlace || userCountry !== existingCountry;
 
-    console.log("Location comparison:", {
-      userEnteredLocation,
-      existingLocation,
+    console.log("Place/country comparison:", {
+      userPlace,
+      existingPlace,
       hasChanged: locationHasChanged,
     });
 
@@ -239,14 +244,13 @@ export const updateDiveSite = async (id, updateData) => {
       console.log("Converted string date to Date object:", dataToUpdate.date);
     }
 
-    // Always geocode if the location has changed
-    if (userEnteredLocation && locationHasChanged) {
+    // Always geocode if the place/country has changed
+    if (locationHasChanged) {
       try {
-        console.log(
-          "Location has changed, geocoding new location:",
-          userEnteredLocation
-        );
-        const geoData = await geocodeLocation(userEnteredLocation);
+        const place = dataToUpdate.place || existingData.place;
+        const country = dataToUpdate.country || existingData.country;
+        console.log("Place/country changed, geocoding new location:", { place, country });
+        const geoData = await geocodeLocation(place, country);
         if (geoData) {
           dataToUpdate.latitude = geoData.latitude;
           dataToUpdate.longitude = geoData.longitude;

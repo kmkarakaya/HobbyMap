@@ -7,12 +7,13 @@
  * @param {string} location - Location name (city, address, etc.)
  * @returns {Promise<{latitude: number, longitude: number}>} - Coordinates
  */
-export const geocodeLocation = async (location) => {
+export const geocodeLocation = async (placeOrLocation, country) => {
   try {
+    const q = country ? `${placeOrLocation}, ${country}` : placeOrLocation;
     // Using OpenStreetMap Nominatim API (free and open source)
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-        location
+        q
       )}`
     );
 

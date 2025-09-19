@@ -73,9 +73,11 @@ export const getDiveSite = async (id) => {
  */
 export const createDiveSite = async (diveSiteData) => {
   try {
-    // Get geocoding data if location is provided
-    if (diveSiteData.location) {
-      const coordinates = await geocodeLocation(diveSiteData.location);
+    // Geocode using place and country (MVP)
+    const place = diveSiteData.place || null;
+    const country = diveSiteData.country || null;
+    if (place || country) {
+      const coordinates = await geocodeLocation(place, country);
       diveSiteData.latitude = coordinates.latitude;
       diveSiteData.longitude = coordinates.longitude;
     }
@@ -120,9 +122,11 @@ export const updateDiveSite = async (id, diveSiteData) => {
       throw new Error("Dive site not found");
     }
 
-    // Get geocoding data if location changed
-    if (diveSiteData.location) {
-      const coordinates = await geocodeLocation(diveSiteData.location);
+    // Geocode using place and country (MVP)
+    const place = diveSiteData.place || null;
+    const country = diveSiteData.country || null;
+    if (place || country) {
+      const coordinates = await geocodeLocation(place, country);
       diveSiteData.latitude = coordinates.latitude;
       diveSiteData.longitude = coordinates.longitude;
     }

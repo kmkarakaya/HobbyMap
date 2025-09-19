@@ -33,14 +33,17 @@ const EditDiveSitePage = () => {
       console.log("Original dive site data:", diveSite);
 
       // Check if location has been changed
-      const locationChanged = diveSite.location !== formData.location;
+      // Compare place/country to detect change
+      const newPlace = formData.place || "";
+      const newCountry = formData.country || "";
+      const locationChanged = (diveSite.place || "") !== newPlace || (diveSite.country || "") !== newCountry;
       console.log(
         "Location changed:",
         locationChanged,
         "Original:",
-        diveSite.location,
+        { place: diveSite.place, country: diveSite.country },
         "New:",
-        formData.location
+        { place: newPlace, country: newCountry }
       );
 
       // Convert the string date to a JavaScript Date object
@@ -48,7 +51,8 @@ const EditDiveSitePage = () => {
 
       const dataToUpdate = {
         siteName: formData.siteName,
-        location: formData.location,
+        place: formData.place,
+        country: formData.country,
         date: dateObject, // Use Date object instead of string
         notes: formData.notes,
       };
