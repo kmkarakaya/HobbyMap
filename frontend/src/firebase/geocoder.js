@@ -34,9 +34,15 @@ export const geocodeLocation = async (location) => {
     };
 
     // Extract a country hint if the user typed one, e.g. "Sharm El Sheik, Egypt"
-    const parts = location.split(",").map((p) => p.trim()).filter(Boolean);
-    const countryHintRaw = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : null;
-    const countryCodeHint = countryHintRaw ? countryMap[countryHintRaw.replace(/\s+/g, "")] : null;
+    const parts = location
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean);
+    const countryHintRaw =
+      parts.length > 1 ? parts[parts.length - 1].toLowerCase() : null;
+    const countryCodeHint = countryHintRaw
+      ? countryMap[countryHintRaw.replace(/\s+/g, "")]
+      : null;
 
     const baseParams = {
       q: location,
@@ -51,10 +57,13 @@ export const geocodeLocation = async (location) => {
 
     // Try primary query: if we have an ISO code, include it as countrycodes
     const tryQuery = async (params) => {
-      const res = await axios.get("https://nominatim.openstreetmap.org/search", {
-        params,
-        headers,
-      });
+      const res = await axios.get(
+        "https://nominatim.openstreetmap.org/search",
+        {
+          params,
+          headers,
+        }
+      );
       return res.data;
     };
 
@@ -65,7 +74,10 @@ export const geocodeLocation = async (location) => {
       results = await tryQuery(params);
     } catch (e) {
       // If the query with countrycodes fails for any reason, fall back to base query
-      console.warn("Geocode primary query failed, falling back:", e.message || e);
+      console.warn(
+        "Geocode primary query failed, falling back:",
+        e.message || e
+      );
       results = await tryQuery(baseParams);
     }
 
@@ -74,7 +86,10 @@ export const geocodeLocation = async (location) => {
       const r = results[0];
       const addr = r.address || {};
       const matchedCountry = countryHintRaw
-        ? ((addr.country && addr.country.toLowerCase().includes(countryHintRaw)) || (addr.country_code && addr.country_code.toLowerCase() === countryCodeHint))
+        ? (addr.country &&
+            addr.country.toLowerCase().includes(countryHintRaw)) ||
+          (addr.country_code &&
+            addr.country_code.toLowerCase() === countryCodeHint)
         : true;
 
       if (matchedCountry) {
@@ -88,7 +103,8 @@ export const geocodeLocation = async (location) => {
     // If we didn't get a satisfactory result, try again by appending the country
     // hint explicitly to the query (helps when Nominatim mis-parses short names).
     if (countryHintRaw) {
-      const qWithCountry = parts.length > 1 ? location : `${location}, ${countryHintRaw}`;
+      const qWithCountry =
+        parts.length > 1 ? location : `${location}, ${countryHintRaw}`;
       const retryParams = { ...baseParams, q: qWithCountry };
       if (countryCodeHint) retryParams.countrycodes = countryCodeHint;
       const retryResults = await tryQuery(retryParams);
