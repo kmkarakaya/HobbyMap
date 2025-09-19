@@ -2,7 +2,7 @@ name: CI / Deploy to Firebase Hosting
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
 
 permissions:
   contents: read
@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: "18"
 
       - name: Install frontend dependencies
         working-directory: ./frontend
@@ -30,8 +30,8 @@ jobs:
       - name: Install Firebase CLI
         run: npm install -g firebase-tools@latest
 
-      - name: Deploy to Firebase Hosting
+      - name: Deploy to Firebase (Hosting + Firestore rules & indexes)
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          firebase deploy --only hosting --project hobbymap-scuba-dive
+          firebase deploy --only hosting,firestore:rules,firestore:indexes --project hobbymap-scuba-dive
