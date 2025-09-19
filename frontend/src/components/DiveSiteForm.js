@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createDiveSite } from "../services/diveService";
+import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSiteForm.css";
 
 const DiveSiteForm = () => {
   const navigate = useNavigate();
+  const { createDiveSite, error: firebaseError, clearError } = useFirebase();
+  
   const [formData, setFormData] = useState({
     siteName: "",
     location: "",
@@ -17,6 +19,14 @@ const DiveSiteForm = () => {
   const { siteName, location, date, notes } = formData;
 
   const onChange = (e) => {
+    // If there was an error, clear it when the user starts typing again
+    if (error) {
+      setError(null);
+    }
+    if (firebaseError) {
+      clearError();
+    }
+    
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 

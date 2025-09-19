@@ -1,28 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
-import { getDiveSites, deleteDiveSite } from "../services/diveService";
+import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSitesList.css";
 
 const DiveSitesList = () => {
-  const [diveSites, setDiveSites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchDiveSites = async () => {
-      try {
-        setLoading(true);
-        const response = await getDiveSites();
-        setDiveSites(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Error fetching dive sites. Please try again later.");
-        setLoading(false);
-      }
-    };
-
-    fetchDiveSites();
-  }, []);
+  const { diveSites, loading, error, deleteDiveSite } = useFirebase();
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this dive site?")) {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { getDiveSites } from "../services/diveService";
+import { useFirebase } from "../contexts/FirebaseContext";
 import "./Map.css";
 
 // Fix for default marker icon issue in React Leaflet
@@ -19,25 +19,7 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const DiveMap = () => {
-  const [diveSites, setDiveSites] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchDiveSites = async () => {
-      try {
-        setLoading(true);
-        const response = await getDiveSites();
-        setDiveSites(response.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Error fetching dive sites. Please try again later.");
-        setLoading(false);
-      }
-    };
-
-    fetchDiveSites();
-  }, []);
+  const { diveSites, loading, error } = useFirebase();
 
   // Default center position
   const defaultPosition = [20, 0]; // Center of the world map
@@ -60,7 +42,7 @@ const DiveMap = () => {
 
         {diveSites.map((site) =>
           site.latitude && site.longitude ? (
-            <Marker key={site._id} position={[site.latitude, site.longitude]}>
+            <Marker key={site.id} position={[site.latitude, site.longitude]}>
               <Popup>
                 <div className="popup-content">
                   <h3>{site.siteName}</h3>

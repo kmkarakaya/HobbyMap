@@ -1,3 +1,4 @@
+// Dive Site Firebase Service
 import { 
   collection, 
   doc, 
@@ -10,13 +11,16 @@ import {
   query,
   orderBy
 } from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
-import { geocodeLocation } from '../../firebase/geocoder';
+import { db } from './firebase';
+import { geocodeLocation } from './geocoder';
 
 const COLLECTION_NAME = 'diveSites';
 const diveSitesCollection = collection(db, COLLECTION_NAME);
 
-// Get all dive sites
+/**
+ * Get all dive sites
+ * @returns {Promise<Array>} List of dive sites
+ */
 export const getDiveSites = async () => {
   try {
     const q = query(diveSitesCollection, orderBy('date', 'desc'));
@@ -29,14 +33,18 @@ export const getDiveSites = async () => {
       date: doc.data().date?.toDate()
     }));
     
-    return { data: diveSites };
+    return diveSites;
   } catch (error) {
-    console.error("Error fetching dive sites:", error);
+    console.error('Error getting dive sites:', error);
     throw error;
   }
 };
 
-// Get a single dive site
+/**
+ * Get a single dive site by ID
+ * @param {string} id - Dive site document ID
+ * @returns {Promise<Object>} Dive site data
+ */
 export const getDiveSite = async (id) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
@@ -47,20 +55,22 @@ export const getDiveSite = async (id) => {
     }
     
     const data = docSnap.data();
-    return { 
-      data: {
-        id: docSnap.id,
-        ...data,
-        date: data.date?.toDate()
-      }
+    return {
+      id: docSnap.id,
+      ...data,
+      date: data.date?.toDate()
     };
   } catch (error) {
-    console.error(`Error fetching dive site ${id}:`, error);
+    console.error(`Error getting dive site ${id}:`, error);
     throw error;
   }
 };
 
-// Create a new dive site
+/**
+ * Create a new dive site
+ * @param {Object} diveSiteData - Dive site data
+ * @returns {Promise<Object>} Created dive site with ID
+ */
 export const createDiveSite = async (diveSiteData) => {
   try {
     // Get geocoding data if location is provided
@@ -70,7 +80,7 @@ export const createDiveSite = async (diveSiteData) => {
       diveSiteData.longitude = coordinates.longitude;
     }
     
-    // Convert string date to Date object
+    // Convert string date to Firestore Timestamp
     if (typeof diveSiteData.date === 'string') {
       diveSiteData.date = new Date(diveSiteData.date);
     }
@@ -85,19 +95,22 @@ export const createDiveSite = async (diveSiteData) => {
     const docRef = await addDoc(diveSitesCollection, dataToSave);
     
     // Return the created document with ID
-    return { 
-      data: {
-        id: docRef.id,
-        ...diveSiteData
-      }
+    return {
+      id: docRef.id,
+      ...diveSiteData
     };
   } catch (error) {
-    console.error("Error creating dive site:", error);
+    console.error('Error creating dive site:', error);
     throw error;
   }
 };
 
-// Update a dive site
+/**
+ * Update an existing dive site
+ * @param {string} id - Dive site document ID
+ * @param {Object} diveSiteData - Updated dive site data
+ * @returns {Promise<Object>} Updated dive site
+ */
 export const updateDiveSite = async (id, diveSiteData) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
@@ -114,7 +127,7 @@ export const updateDiveSite = async (id, diveSiteData) => {
       diveSiteData.longitude = coordinates.longitude;
     }
     
-    // Convert string date to Date object
+    // Convert string date to Firestore Timestamp
     if (typeof diveSiteData.date === 'string') {
       diveSiteData.date = new Date(diveSiteData.date);
     }
@@ -127,11 +140,9 @@ export const updateDiveSite = async (id, diveSiteData) => {
     
     await updateDoc(docRef, dataToUpdate);
     
-    return { 
-      data: {
-        id,
-        ...diveSiteData
-      }
+    return {
+      id,
+      ...diveSiteData
     };
   } catch (error) {
     console.error(`Error updating dive site ${id}:`, error);
@@ -139,12 +150,15 @@ export const updateDiveSite = async (id, diveSiteData) => {
   }
 };
 
-// Delete a dive site
+/**
+ * Delete a dive site
+ * @param {string} id - Dive site document ID
+ * @returns {Promise<void>}
+ */
 export const deleteDiveSite = async (id) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(docRef);
-    return { success: true };
   } catch (error) {
     console.error(`Error deleting dive site ${id}:`, error);
     throw error;

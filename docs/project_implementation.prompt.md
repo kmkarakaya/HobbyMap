@@ -10,7 +10,7 @@ This step-by-step plan will help guide Copilot and developers through building t
 - Create a `README.md` with project overview.
 - Set up folder structure:
   - `/frontend` - For React frontend
- /firebase` - For Firebase configuration files
+    /firebase` - For Firebase configuration files
   - `/docs` - For documentation
   - `/tests` - For frontend tests
 - Set up environment variables (`.env`) template.
@@ -208,16 +208,19 @@ This step-by-step plan will help guide Copilot and developers through building t
 **How to Use This Plan with Copilot:**
 
 1. **Begin with project scaffolding:**
+
    ```
    "Copilot, scaffold the basic project structure as described in step 1."
    ```
 
 2. **Set up Firebase:**
+
    ```
    "Copilot, help me set up Firebase configuration for my scuba diving app."
    ```
 
 3. **Implement frontend components:**
+
    ```
    "Copilot, create a React component to display a map with Leaflet as described in step 3.4."
    ```
@@ -297,7 +300,6 @@ Focus on getting each core feature working before moving to the next.
 
   - `/src/components` - Reusable UI components
   - `/src/pages` - Page components
-
 
 - Implement public share link generation:
 
