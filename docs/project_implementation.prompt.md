@@ -1,6 +1,6 @@
-# Scuba Diving Map Tracker – Implementation Plan
+# Scuba Diving Map Tracker – Implementation Plan with Firebase
 
-This step-by-step plan will help guide Copilot and developers through building the app described in the project prompt.
+This step-by-step plan will help guide Copilot and developers through building the app described in the project prompt using Firebase as the database.
 
 ---
 
@@ -8,32 +8,185 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 - Initialize a new Git repository.
 - Create a `README.md` with project overview.
-- Set ### 4.3. CI/CD (Optional)
+- Set up folder structure:
+  - `/frontend` - For React frontend
+ /firebase` - For Firebase configuration files
+  - `/docs` - For documentation
+  - `/tests` - For frontend tests
+- Set up environment variables (`.env`) template.
+- Configure package managers (npm or yarn).
+
+---
+
+## 2. Firebase Setup
+
+### 2.1. Firebase Project Configuration
+
+- Create a new Firebase project in the Firebase Console
+- Enable Firestore database
+- Set up Firebase Authentication (optional for MVP)
+- Configure Firebase storage (if needed for future image uploads)
+- Set up Firebase hosting
+- Get Firebase configuration details (API keys, etc.)
+
+### 2.2. Firestore Data Model
+
+- Design a Firestore collection for dive sites:
+  - `siteName` (String, required)
+  - `location` (String, required) - town/city name
+  - `latitude` (Number)
+  - `longitude` (Number)
+  - `date` (Timestamp, required)
+  - `notes` (String, optional)
+  - `userId` (String, optional) - For future auth integration
+  - `createdAt` (Timestamp)
+  - `updatedAt` (Timestamp)
+
+### 2.3. Firebase Security Rules
+
+- Set up Firestore security rules:
+  - Allow read access to all users (for MVP)
+  - Allow write access to all users (for MVP)
+  - Prepare rules structure for future auth integration
+
+### 2.4. Firebase Functions (Optional)
+
+- Set up Firebase Functions development environment
+- Create geocoding function (optional)
+- Set up data validation functions
+
+---
+
+## 3. Frontend Development
+
+### 3.1. Initialize Frontend
+
+- Create React application using Create React App or Vite
+- Set up folder structure:
+  - `/src/components` - Reusable UI components
+  - `/src/pages` - Page components
+  - `/src/hooks` - Custom React hooks
+  - `/src/services` - API service functions
+  - `/src/contexts` - React context providers
+  - `/src/utils` - Helper functions
+  - `/src/assets` - Images, icons, etc.
+- Set up dependencies:
+  - UI framework: Tailwind CSS or Material UI
+  - Routing: React Router
+  - Map: Leaflet.js or Mapbox GL
+  - Forms: React Hook Form or Formik
+  - Firebase: Firebase SDK
+
+### 3.2. Firebase Context/Hooks
+
+- Create Firebase context:
+  - Provide Firebase app instance
+  - Firestore database access
+  - Authentication methods (for future use)
+- Build custom hooks:
+  - `useDiveSites` - For fetching and managing dive sites
+  - `useGeocode` - For converting location names to coordinates
+
+### 3.3. Dive Site Management UI
+
+- Create layout components:
+  - Navigation header
+  - Main content area
+- Build dive site list view:
+  - Table/card layout of all dive sites
+  - Sorting and filtering options
+  - Quick actions (edit, delete)
+- Create dive site form component:
+  - Fields for site name, location, date, notes
+  - Validation
+  - Geocoding preview (show detected coordinates)
+  - Submit and cancel buttons
+- Implement CRUD operations with Firestore:
+  - Create new dive site
+  - Read dive sites
+  - Update existing dive site
+  - Delete dive site
+
+### 3.4. Map Integration
+
+- Implement map component using Leaflet.js:
+  - Initialize map with world view
+  - Add zoom and pan controls
+  - Set up tile layer (OpenStreetMap or Mapbox)
+- Integrate dive site data:
+  - Fetch dive sites from Firestore
+  - Convert to map markers
+  - Custom marker icons (optional)
+  - Handle loading and error states
+- Create interactive markers:
+  - Popup with site name, date, and notes
+  - Click handlers for additional details
+  - Hover effects
+
+### 3.5. Responsive Design
+
+- Implement responsive layouts:
+  - Adapt UI for different screen sizes
+  - Mobile-first approach
+  - Touch-friendly controls for map
+  - Collapsible menus and panels
+
+### 3.6. Frontend Testing
+
+- Set up testing environment:
+  - React Testing Library
+  - Jest
+  - Mock Firebase for testing
+- Write component tests:
+  - Unit tests for UI components
+  - Integration tests for forms and interactions
+  - Test map rendering and interactions
+
+---
+
+## 4. Deployment & Documentation
+
+### 4.1. Firebase Deployment
+
+- Configure Firebase hosting:
+  - Set up deployment settings
+  - Configure caching and performance rules
+- Deploy React application:
+  - Build production-ready bundle
+  - Deploy to Firebase hosting
+  - Configure custom domain (if available)
+
+### 4.2. Documentation
+
+- Create comprehensive README.md:
+  - Project overview
+  - Setup instructions
+  - Environment variables
+  - Available scripts
+- User documentation:
+  - How to use the application
+  - Features guide
+  - Troubleshooting
+
+### 4.3. CI/CD (Optional)
 
 - Set up GitHub Actions:
   - Run tests on pull requests
   - Linting and code quality checks
-  - Automated deployment
+  - Automated deployment to Firebase
 
 ---
 
-## 5. Final Testing & Launch
+## 5. Testing & Launch
 
 ### 5.1. Quality Assurance
 
 - Cross-browser testing
 - Performance testing
-- Security review
+- Security review of Firebase rules
 - Accessibility audit
 
-### 5.2. Launch Preparation
-
-- Final review of all features
-- Data backup procedures
-- Monitoring setup
-- Analytics integration
-
-### 5.3. Launch
+### 5.2. Launch
 
 - Deploy production version
 - Monitor for issues
@@ -41,80 +194,40 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 ---
 
+## 6. Future Enhancements
+
+- User authentication with Firebase Auth
+- User-specific dive sites
+- Advanced filtering and search
+- Custom marker icons
+- Image uploads for dive sites
+- Mobile app version with React Native
+
+---
+
 **How to Use This Plan with Copilot:**
 
-1. **Begin with project scaffolding:** Ask Copilot to set up the initial project structure.
-
+1. **Begin with project scaffolding:**
    ```
    "Copilot, scaffold the basic project structure as described in step 1."
    ```
 
-2. **Implement in sequence:** Work through each section methodically.
-
+2. **Set up Firebase:**
    ```
-   "Copilot, help me implement the user authentication system as described in step 2.3."
-   ```
-
-3. **Request specific code:** Get help with specific components or functions.
-
-   ```
-   "Copilot, generate the Mongoose schema for dive sites as described in step 2.2."
+   "Copilot, help me set up Firebase configuration for my scuba diving app."
    ```
 
-4. **Debug and refine:** Ask for help troubleshooting issues.
+3. **Implement frontend components:**
    ```
-   "Copilot, there's an issue with the geocoding service. Help me debug based on step 2.4."
+   "Copilot, create a React component to display a map with Leaflet as described in step 3.4."
    ```
 
-Remember to commit code frequently and test thoroughly at each step.cture:
+4. **Connect to Firestore:**
+   ```
+   "Copilot, help me implement the Firestore service to manage dive sites."
+   ```
 
-- `/backend` - For Node.js/Express API
-- `/frontend` - For React frontend
-- `/docs` - For documentation
-- `/tests` - For integration tests
-- Set up environment variables (`.env`) template.
-- Configure package managers (npm or yarn).
-
----
-
-## 2. Backend Development
-
-### 2.1. Initialize Backend
-
-- Scaffold a Node.js + Express project in `/backend`.
-- Set up ESLint and Prettier for code quality.
-- Install dependencies:
-  - Core: `express`, `mongoose`, `dotenv`, `cors`, `helmet`
-  - Auth: `jsonwebtoken`, `bcrypt`
-  - Validation: `joi` or `express-validator`
-  - Geocoding: `node-geocoder` or similar
-- Set up directory structure:
-  - `/controllers` - Route handlers
-  - `/models` - Mongoose schemas
-  - `/routes` - API routes
-  - `/middleware` - Custom middleware
-  - `/utils` - Helper functions
-  - `/config` - Configuration files
-
-### 2.2. Database Models
-
-- Design a Mongoose schema for users:
-
-  - `email` (String, unique)
-  - `password` (String, hashed)
-  - `name` (String)
-  - `createdAt` (Date)
-
-- Design a Mongoose schema for dive sites:
-  - `siteName` (String, required)
-  - `location` (String, required) - town/city name or custom location
-  - `latitude` (Number, optional)
-  - `longitude` (Number, optional)
-  - `date` (Date, required)
-  - `notes` (String, optional)
-  - `userId` (ObjectId, required) - Reference to User model
-  - `createdAt` (Date)
-  - `updatedAt` (Date)
+Focus on getting each core feature working before moving to the next.
 
 ### 2.3. Authentication System
 
@@ -184,107 +297,7 @@ Remember to commit code frequently and test thoroughly at each step.cture:
 
   - `/src/components` - Reusable UI components
   - `/src/pages` - Page components
-  - `/src/hooks` - Custom React hooks
-  - `/src/services` - API service functions
-  - `/src/contexts` - React context providers
-  - `/src/utils` - Helper functions
-  - `/src/assets` - Images, icons, etc.
 
-- Set up dependencies:
-
-  - UI framework: Tailwind CSS or Material UI
-  - Routing: React Router
-  - Map: Leaflet.js or Mapbox GL
-  - Forms: React Hook Form or Formik
-  - API calls: Axios
-  - State management: React Context API or Redux Toolkit
-
-- Configure development environment:
-  - ESLint and Prettier
-  - Environment variables
-  - Proxy configuration for API calls
-
-### 3.2. Authentication UI
-
-- Create authentication context:
-
-  - Store user state and token
-  - Provide login/logout functions
-  - Handle token persistence
-
-- Build registration page:
-
-  - Form with email, password, name fields
-  - Validation
-  - Error handling
-  - Success feedback
-
-- Build login page:
-
-  - Email and password form
-  - Validation
-  - Error handling
-  - "Remember me" option
-
-- Implement protected routes:
-  - Redirect unauthenticated users to login
-  - Persist authentication state across page refreshes
-
-### 3.3. Dive Site Management UI
-
-- Create dashboard layout:
-
-  - Navigation sidebar/header
-  - User profile section
-  - Main content area
-
-- Build dive site list view:
-
-  - Table/card layout of all dive sites
-  - Sorting and filtering options
-  - Pagination if needed
-  - Quick actions (edit, delete)
-
-- Create dive site form component:
-
-  - Fields for site name, location, date, notes
-  - Validation
-  - Geocoding preview (show detected coordinates)
-  - Submit and cancel buttons
-
-- Implement CRUD operations:
-  - Create new dive site form
-  - Edit existing dive site form
-  - Delete confirmation dialog
-
-### 3.4. Map Integration
-
-- Implement map component using Leaflet.js:
-
-  - Initialize map with world view
-  - Add zoom and pan controls
-  - Set up tile layer (OpenStreetMap or Mapbox)
-
-- Integrate dive site data:
-
-  - Fetch dive sites from API
-  - Convert to map markers
-  - Custom marker icons (optional)
-  - Handle loading and error states
-
-- Create interactive markers:
-
-  - Popup with site name, date, and notes
-  - Click handlers for additional details
-  - Hover effects
-
-- Add map features:
-  - Cluster markers for areas with many dives
-  - Fit bounds to show all markers
-  - Toggle satellite/map views
-  - Center on user's location
-
-### 3.5. Sharing Feature
 
 - Implement public share link generation:
 
