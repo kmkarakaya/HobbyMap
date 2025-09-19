@@ -35,7 +35,7 @@ const createColoredIcon = (color) => {
       <circle cx='12' cy='9' r='2.5' fill='white'/>
     </svg>`;
 
-  const svgUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  const svgUrl = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
 
   return L.icon({
     iconUrl: svgUrl,
