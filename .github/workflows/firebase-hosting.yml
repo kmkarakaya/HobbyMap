@@ -36,16 +36,8 @@ jobs:
         run: |
           echo "Node version:" && node --version || true
           echo "NPM version:" && npm --version || true
-          echo "Attempting 'npm ci' (preferred)..."
-          if npm ci; then
-            echo "npm ci succeeded"
-          else
-            echo "npm ci failed — showing npm debug log tail and falling back to npm install --legacy-peer-deps"
-            echo "---- npm debug log (tail) ----"
-            tail -n 200 /home/runner/.npm/_logs/*.log || true
-            echo "---- end log ----"
-            npm install --legacy-peer-deps
-          fi
+          echo "Running 'npm install --legacy-peer-deps' (CI-safe fallback)..."
+          npm install --legacy-peer-deps
 
       - name: Build frontend
         working-directory: ./frontend
