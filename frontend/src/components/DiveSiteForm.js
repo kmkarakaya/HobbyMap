@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSiteForm.css";
+// Import the test functions
+import {
+  testFirebaseWrite,
+  testFirebaseRead,
+} from "../firebase/testConnection";
 
 const DiveSiteForm = () => {
   const navigate = useNavigate();
@@ -15,6 +20,42 @@ const DiveSiteForm = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [testResult, setTestResult] = useState(null);
+
+  // Function to test Firebase connection
+  const handleTestConnection = async () => {
+    try {
+      setLoading(true);
+      setTestResult("Testing Firebase connection...");
+
+      // Test write operation
+      const writeResult = await testFirebaseWrite();
+      console.log("Write test result:", writeResult);
+
+      if (writeResult.success) {
+        // Test read operation
+        const readResult = await testFirebaseRead();
+        console.log("Read test result:", readResult);
+
+        if (readResult.success) {
+          setTestResult(
+            "Firebase connection successful! Both read and write operations work."
+          );
+        } else {
+          setTestResult(
+            `Firebase write worked but read failed: ${readResult.error}`
+          );
+        }
+      } else {
+        setTestResult(`Firebase connection failed: ${writeResult.error}`);
+      }
+    } catch (err) {
+      console.error("Test connection error:", err);
+      setTestResult(`Error testing connection: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const { siteName, location, date, notes } = formData;
 
@@ -40,11 +81,15 @@ const DiveSiteForm = () => {
 
     try {
       setLoading(true);
+      console.log("Submitting form data:", formData);
       await createDiveSite(formData);
       setLoading(false);
       navigate("/dives");
     } catch (err) {
-      setError("Error creating dive site. Please try again.");
+      console.error("Detailed error in form submission:", err);
+      setError(
+        `Error creating dive site: ${err.message || "Please try again."}`
+      );
       setLoading(false);
     }
   };
@@ -116,6 +161,31 @@ const DiveSiteForm = () => {
           <button type="submit" className="submit-button" disabled={loading}>
             {loading ? "Saving..." : "Save Dive Site"}
           </button>
+
+          {/* Test Connection Button */}
+          <button
+            type="button"
+            className="test-button"
+            onClick={handleTestConnection}
+            disabled={loading}
+            style={{ marginTop: "10px", backgroundColor: "#3498db" }}
+          >
+            Test Firebase Connection
+          </button>
+
+          {/* Test Result Display */}
+          {testResult && (
+            <div
+              style={{
+                marginTop: "10px",
+                padding: "10px",
+                backgroundColor: "#f0f0f0",
+                borderRadius: "5px",
+              }}
+            >
+              {testResult}
+            </div>
+          )}
         </div>
       </form>
     </div>

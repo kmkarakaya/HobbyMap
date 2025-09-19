@@ -11,8 +11,12 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./firebase";
+// Import directly from the root firebase.js file to ensure we're using the correct config
+import { db } from "../firebase";
 import { geocodeLocation } from "./geocoder";
+
+// For debugging - log the db object
+console.log("Firebase db object:", db);
 
 const COLLECTION_NAME = "diveSites";
 const diveSitesCollection = collection(db, COLLECTION_NAME);
@@ -73,15 +77,27 @@ export const getDiveSite = async (id) => {
  */
 export const createDiveSite = async (diveSiteData) => {
   try {
+    // Debug: Log the data we received
+    console.log("Creating dive site with data:", diveSiteData);
+
     // First geocode the location if not already geocoded
     let newDiveSite = { ...diveSiteData };
 
+    // Convert string date to Firestore timestamp or Date object
+    if (newDiveSite.date && typeof newDiveSite.date === "string") {
+      // Convert to Date object first
+      newDiveSite.date = new Date(newDiveSite.date);
+      console.log("Converted date to Date object:", newDiveSite.date);
+    }
+
     if (!newDiveSite.latitude || !newDiveSite.longitude) {
       try {
+        console.log("Attempting to geocode location:", newDiveSite.location);
         const geoData = await geocodeLocation(newDiveSite.location);
         if (geoData) {
           newDiveSite.latitude = geoData.latitude;
           newDiveSite.longitude = geoData.longitude;
+          console.log("Geocoding successful:", geoData);
         }
       } catch (geocodeError) {
         console.warn("Geocoding failed:", geocodeError);
@@ -91,18 +107,25 @@ export const createDiveSite = async (diveSiteData) => {
 
     // Add server timestamp
     newDiveSite.createdAt = serverTimestamp();
+    console.log("Final dive site data to save:", newDiveSite);
 
     const docRef = await addDoc(diveSitesCollection, newDiveSite);
+    console.log("Document written with ID:", docRef.id);
 
     // Get the newly created document to return it with the ID
     const newDoc = await getDoc(docRef);
     const data = newDoc.data();
+    console.log("Retrieved new document data:", data);
 
-    return {
+    // Create the return object with proper handling of date
+    const returnData = {
       id: docRef.id,
       ...data,
-      date: data.date?.toDate(),
+      // Handle date conversion - if it's a Firestore timestamp, convert to Date
+      date: data.date?.toDate ? data.date.toDate() : data.date,
     };
+    console.log("Returning data:", returnData);
+    return returnData;
   } catch (error) {
     console.error("Error creating dive site:", error);
     throw error;

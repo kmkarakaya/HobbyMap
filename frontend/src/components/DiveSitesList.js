@@ -10,9 +10,10 @@ const DiveSitesList = () => {
     if (window.confirm("Are you sure you want to delete this dive site?")) {
       try {
         await deleteDiveSite(id);
-        setDiveSites(diveSites.filter((site) => site._id !== id));
+        // The FirebaseContext already handles updating the diveSites state
       } catch (err) {
-        setError("Error deleting dive site. Please try again.");
+        console.error("Error deleting dive site:", err);
+        // The error will be handled by the FirebaseContext
       }
     }
   };
@@ -39,7 +40,7 @@ const DiveSitesList = () => {
       ) : (
         <div className="dive-sites-grid">
           {diveSites.map((site) => (
-            <div className="dive-site-card" key={site._id}>
+            <div className="dive-site-card" key={site.id}>
               <h3>{site.siteName}</h3>
               <p>
                 <strong>Location:</strong> {site.location}
@@ -55,11 +56,11 @@ const DiveSitesList = () => {
               )}
 
               <div className="card-actions">
-                <Link to={`/edit/${site._id}`} className="edit-button">
+                <Link to={`/edit/${site.id}`} className="edit-button">
                   Edit
                 </Link>
                 <button
-                  onClick={() => handleDelete(site._id)}
+                  onClick={() => handleDelete(site.id)}
                   className="delete-button"
                 >
                   Delete

@@ -2,15 +2,14 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Firebase configuration
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
+  apiKey: "AIzaSyBpbR2s0_iKTT-mXHFd6_t8a5-VlAG5gH8",
+  authDomain: "hobbymap-scuba-dive.firebaseapp.com",
+  projectId: "hobbymap-scuba-dive",
+  storageBucket: "hobbymap-scuba-dive.firebasestorage.app",
+  messagingSenderId: "155802485714",
+  appId: "1:155802485714:web:e1e707d384cf9a03bf7e0b",
 };
 
 // Initialize Firebase

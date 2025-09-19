@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { db } from "../firebase/firebase";
+// Import db directly from the root firebase.js file which has the correct config
+import { db } from "../firebase";
 import {
   getDiveSites as fetchDiveSites,
   getDiveSite as fetchDiveSite,
@@ -7,6 +8,9 @@ import {
   updateDiveSite as editDiveSite,
   deleteDiveSite as removeDiveSite,
 } from "../firebase/diveService";
+
+// Debug log to verify the db being used
+console.log("FirebaseContext using db:", db);
 
 // Create context
 const FirebaseContext = createContext(null);
