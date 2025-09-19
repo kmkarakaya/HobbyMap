@@ -1,34 +1,34 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
+import {
+  collection,
+  doc,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
   serverTimestamp,
   query,
-  orderBy
-} from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
-import { geocodeLocation } from '../../firebase/geocoder';
+  orderBy,
+} from "firebase/firestore";
+import { db } from "../../firebase/firebase";
+import { geocodeLocation } from "../../firebase/geocoder";
 
-const COLLECTION_NAME = 'diveSites';
+const COLLECTION_NAME = "diveSites";
 const diveSitesCollection = collection(db, COLLECTION_NAME);
 
 // Get all dive sites
 export const getDiveSites = async () => {
   try {
-    const q = query(diveSitesCollection, orderBy('date', 'desc'));
+    const q = query(diveSitesCollection, orderBy("date", "desc"));
     const querySnapshot = await getDocs(q);
-    
-    const diveSites = querySnapshot.docs.map(doc => ({
+
+    const diveSites = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
       // Convert Firestore Timestamp to JS Date for easier handling in UI
-      date: doc.data().date?.toDate()
+      date: doc.data().date?.toDate(),
     }));
-    
+
     return { data: diveSites };
   } catch (error) {
     console.error("Error fetching dive sites:", error);
@@ -41,18 +41,18 @@ export const getDiveSite = async (id) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) {
-      throw new Error('Dive site not found');
+      throw new Error("Dive site not found");
     }
-    
+
     const data = docSnap.data();
-    return { 
+    return {
       data: {
         id: docSnap.id,
         ...data,
-        date: data.date?.toDate()
-      }
+        date: data.date?.toDate(),
+      },
     };
   } catch (error) {
     console.error(`Error fetching dive site ${id}:`, error);
@@ -69,27 +69,27 @@ export const createDiveSite = async (diveSiteData) => {
       diveSiteData.latitude = coordinates.latitude;
       diveSiteData.longitude = coordinates.longitude;
     }
-    
+
     // Convert string date to Date object
-    if (typeof diveSiteData.date === 'string') {
+    if (typeof diveSiteData.date === "string") {
       diveSiteData.date = new Date(diveSiteData.date);
     }
-    
+
     // Add timestamps
     const dataToSave = {
       ...diveSiteData,
       createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
-    
+
     const docRef = await addDoc(diveSitesCollection, dataToSave);
-    
+
     // Return the created document with ID
-    return { 
+    return {
       data: {
         id: docRef.id,
-        ...diveSiteData
-      }
+        ...diveSiteData,
+      },
     };
   } catch (error) {
     console.error("Error creating dive site:", error);
@@ -102,36 +102,36 @@ export const updateDiveSite = async (id, diveSiteData) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
-    
+
     if (!docSnap.exists()) {
-      throw new Error('Dive site not found');
+      throw new Error("Dive site not found");
     }
-    
+
     // Get geocoding data if location changed
     if (diveSiteData.location) {
       const coordinates = await geocodeLocation(diveSiteData.location);
       diveSiteData.latitude = coordinates.latitude;
       diveSiteData.longitude = coordinates.longitude;
     }
-    
+
     // Convert string date to Date object
-    if (typeof diveSiteData.date === 'string') {
+    if (typeof diveSiteData.date === "string") {
       diveSiteData.date = new Date(diveSiteData.date);
     }
-    
+
     // Add updated timestamp
     const dataToUpdate = {
       ...diveSiteData,
-      updatedAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
-    
+
     await updateDoc(docRef, dataToUpdate);
-    
-    return { 
+
+    return {
       data: {
         id,
-        ...diveSiteData
-      }
+        ...diveSiteData,
+      },
     };
   } catch (error) {
     console.error(`Error updating dive site ${id}:`, error);

@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { db } from '../firebase/firebase';
-import { 
-  getDiveSites as fetchDiveSites, 
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { db } from "../firebase/firebase";
+import {
+  getDiveSites as fetchDiveSites,
   getDiveSite as fetchDiveSite,
   createDiveSite as addDiveSite,
   updateDiveSite as editDiveSite,
-  deleteDiveSite as removeDiveSite
-} from '../firebase/diveService';
+  deleteDiveSite as removeDiveSite,
+} from "../firebase/diveService";
 
 // Create context
 const FirebaseContext = createContext(null);
@@ -15,7 +15,7 @@ const FirebaseContext = createContext(null);
 export const useFirebase = () => {
   const context = useContext(FirebaseContext);
   if (context === null) {
-    throw new Error('useFirebase must be used within a FirebaseProvider');
+    throw new Error("useFirebase must be used within a FirebaseProvider");
   }
   return context;
 };
@@ -34,8 +34,8 @@ export const FirebaseProvider = ({ children }) => {
         setDiveSites(sites);
         setError(null);
       } catch (err) {
-        console.error('Error loading dive sites:', err);
-        setError('Failed to load dive sites. Please try again.');
+        console.error("Error loading dive sites:", err);
+        setError("Failed to load dive sites. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -51,7 +51,7 @@ export const FirebaseProvider = ({ children }) => {
       const site = await fetchDiveSite(id);
       return site;
     } catch (err) {
-      setError('Failed to load dive site details.');
+      setError("Failed to load dive site details.");
       throw err;
     } finally {
       setLoading(false);
@@ -63,13 +63,13 @@ export const FirebaseProvider = ({ children }) => {
     try {
       setLoading(true);
       const newSite = await addDiveSite(diveSiteData);
-      
+
       // Update the local state with the new dive site
-      setDiveSites(prevSites => [newSite, ...prevSites]);
-      
+      setDiveSites((prevSites) => [newSite, ...prevSites]);
+
       return newSite;
     } catch (err) {
-      setError('Failed to create dive site. Please try again.');
+      setError("Failed to create dive site. Please try again.");
       throw err;
     } finally {
       setLoading(false);
@@ -81,15 +81,17 @@ export const FirebaseProvider = ({ children }) => {
     try {
       setLoading(true);
       const updatedSite = await editDiveSite(id, diveSiteData);
-      
+
       // Update the local state with the updated dive site
-      setDiveSites(prevSites => 
-        prevSites.map(site => site.id === id ? { ...site, ...updatedSite } : site)
+      setDiveSites((prevSites) =>
+        prevSites.map((site) =>
+          site.id === id ? { ...site, ...updatedSite } : site
+        )
       );
-      
+
       return updatedSite;
     } catch (err) {
-      setError('Failed to update dive site. Please try again.');
+      setError("Failed to update dive site. Please try again.");
       throw err;
     } finally {
       setLoading(false);
@@ -101,12 +103,11 @@ export const FirebaseProvider = ({ children }) => {
     try {
       setLoading(true);
       await removeDiveSite(id);
-      
+
       // Remove the dive site from local state
-      setDiveSites(prevSites => prevSites.filter(site => site.id !== id));
-      
+      setDiveSites((prevSites) => prevSites.filter((site) => site.id !== id));
     } catch (err) {
-      setError('Failed to delete dive site. Please try again.');
+      setError("Failed to delete dive site. Please try again.");
       throw err;
     } finally {
       setLoading(false);
@@ -126,7 +127,7 @@ export const FirebaseProvider = ({ children }) => {
     createDiveSite,
     updateDiveSite,
     deleteDiveSite,
-    clearError
+    clearError,
   };
 
   return (

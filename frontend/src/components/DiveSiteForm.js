@@ -6,7 +6,7 @@ import "./DiveSiteForm.css";
 const DiveSiteForm = () => {
   const navigate = useNavigate();
   const { createDiveSite, error: firebaseError, clearError } = useFirebase();
-  
+
   const [formData, setFormData] = useState({
     siteName: "",
     location: "",
@@ -26,7 +26,7 @@ const DiveSiteForm = () => {
     if (firebaseError) {
       clearError();
     }
-    
+
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 

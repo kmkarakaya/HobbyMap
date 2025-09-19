@@ -11,7 +11,9 @@ export const geocodeLocation = async (location) => {
   try {
     // Using OpenStreetMap Nominatim API (free and open source)
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+        location
+      )}`
     );
 
     if (!response.ok) {
@@ -31,7 +33,7 @@ export const geocodeLocation = async (location) => {
     // Return null coordinates if no results found
     return { latitude: null, longitude: null };
   } catch (error) {
-    console.error('Geocoding error:', error);
+    console.error("Geocoding error:", error);
     return { latitude: null, longitude: null };
   }
 };
@@ -53,9 +55,9 @@ export const reverseGeocode = async (latitude, longitude) => {
     }
 
     const data = await response.json();
-    return data.display_name || '';
+    return data.display_name || "";
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
-    return '';
+    console.error("Reverse geocoding error:", error);
+    return "";
   }
 };
