@@ -4,6 +4,7 @@ import Header from "./components/Header";
 import HomePage from "./pages/HomePage";
 import DiveSitesPage from "./pages/DiveSitesPage";
 import AddDiveSitePage from "./pages/AddDiveSitePage";
+import EditDiveSitePage from "./pages/EditDiveSitePage";
 import { FirebaseProvider } from "./contexts/FirebaseContext";
 import "./App.css";
 
@@ -18,6 +19,7 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/dives" element={<DiveSitesPage />} />
               <Route path="/add" element={<AddDiveSitePage />} />
+              <Route path="/edit/:id" element={<EditDiveSitePage />} />
             </Routes>
           </main>
         </div>

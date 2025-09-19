@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSiteForm.css";
@@ -8,7 +8,7 @@ import {
   testFirebaseRead,
 } from "../firebase/testConnection";
 
-const DiveSiteForm = () => {
+const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   const navigate = useNavigate();
   const { createDiveSite, error: firebaseError, clearError } = useFirebase();
 
@@ -21,6 +21,58 @@ const DiveSiteForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [testResult, setTestResult] = useState(null);
+
+  // Initialize form data with initialData for editing
+  useEffect(() => {
+    if (initialData) {
+      console.log("Initializing form with data:", initialData);
+      console.log("Initial date value:", initialData.date);
+      console.log(
+        "Date type:",
+        initialData.date instanceof Date
+          ? "Date object"
+          : typeof initialData.date
+      );
+
+      // Format the date from timestamp to string format for the input
+      let formattedDate = "";
+
+      if (initialData.date instanceof Date) {
+        formattedDate = initialData.date.toISOString().substring(0, 10);
+        console.log("Formatted from Date object:", formattedDate);
+      } else if (typeof initialData.date === "string") {
+        // If it's already a string, ensure it's properly formatted (YYYY-MM-DD)
+        const dateObj = new Date(initialData.date);
+        if (!isNaN(dateObj.getTime())) {
+          formattedDate = dateObj.toISOString().substring(0, 10);
+          console.log("Formatted from string:", formattedDate);
+        } else {
+          formattedDate = initialData.date.substring(0, 10);
+          console.log("Using substring from string:", formattedDate);
+        }
+      } else if (
+        initialData.date &&
+        typeof initialData.date.toDate === "function"
+      ) {
+        // If it's a Firestore timestamp
+        formattedDate = initialData.date
+          .toDate()
+          .toISOString()
+          .substring(0, 10);
+        console.log("Formatted from Firestore timestamp:", formattedDate);
+      }
+
+      setFormData({
+        siteName: initialData.siteName || "",
+        location: initialData.location || "",
+        date: formattedDate,
+        notes: initialData.notes || "",
+        // Store original data for comparison
+        originalLocation: initialData.location || "",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Intentionally empty to initialize just once
 
   // Function to test Firebase connection
   const handleTestConnection = async () => {
@@ -68,10 +120,22 @@ const DiveSiteForm = () => {
       clearError();
     }
 
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    // Add debug logging for location changes
+    if (name === "location") {
+      console.log("Location changed to:", value);
+    }
+
+    // Update form data
+    setFormData((prevData) => {
+      const newData = { ...prevData, [name]: value };
+      console.log("Updated form data:", newData);
+      return newData;
+    });
   };
 
-  const onSubmit = async (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
 
     if (!siteName || !location || !date) {
@@ -82,13 +146,23 @@ const DiveSiteForm = () => {
     try {
       setLoading(true);
       console.log("Submitting form data:", formData);
-      await createDiveSite(formData);
+
+      if (isEditing && onSubmit) {
+        // Use the provided onSubmit function for editing
+        await onSubmit(formData);
+      } else {
+        // Default behavior for creating
+        await createDiveSite(formData);
+      }
+
       setLoading(false);
       navigate("/dives");
     } catch (err) {
       console.error("Detailed error in form submission:", err);
       setError(
-        `Error creating dive site: ${err.message || "Please try again."}`
+        `Error ${isEditing ? "updating" : "creating"} dive site: ${
+          err.message || "Please try again."
+        }`
       );
       setLoading(false);
     }
@@ -96,9 +170,9 @@ const DiveSiteForm = () => {
 
   return (
     <div className="dive-site-form-container">
-      <h2>Add New Dive Site</h2>
+      <h2>{isEditing ? "Edit Dive Site" : "Add New Dive Site"}</h2>
       {error && <div className="error-message">{error}</div>}
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <div className="form-group">
           <label htmlFor="siteName">Site Name*</label>
           <input
@@ -159,19 +233,25 @@ const DiveSiteForm = () => {
             Cancel
           </button>
           <button type="submit" className="submit-button" disabled={loading}>
-            {loading ? "Saving..." : "Save Dive Site"}
+            {loading
+              ? "Saving..."
+              : isEditing
+              ? "Update Dive Site"
+              : "Save Dive Site"}
           </button>
 
-          {/* Test Connection Button */}
-          <button
-            type="button"
-            className="test-button"
-            onClick={handleTestConnection}
-            disabled={loading}
-            style={{ marginTop: "10px", backgroundColor: "#3498db" }}
-          >
-            Test Firebase Connection
-          </button>
+          {/* Test Connection Button - Only show in Add mode */}
+          {!isEditing && (
+            <button
+              type="button"
+              className="test-button"
+              onClick={handleTestConnection}
+              disabled={loading}
+              style={{ marginTop: "10px", backgroundColor: "#3498db" }}
+            >
+              Test Firebase Connection
+            </button>
+          )}
 
           {/* Test Result Display */}
           {testResult && (

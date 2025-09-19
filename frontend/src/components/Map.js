@@ -19,13 +19,36 @@ let DefaultIcon = L.icon({
 L.Marker.prototype.options.icon = DefaultIcon;
 
 const DiveMap = () => {
-  const { diveSites, loading, error } = useFirebase();
+  const { diveSites, loading, error, retryLoadDiveSites } = useFirebase();
 
   // Default center position
   const defaultPosition = [20, 0]; // Center of the world map
 
   if (loading) return <div className="loading">Loading map...</div>;
-  if (error) return <div className="error">{error}</div>;
+
+  // Show error with retry button
+  if (error) {
+    return (
+      <div className="error">
+        <p>{error}</p>
+        <button
+          onClick={retryLoadDiveSites}
+          className="retry-button"
+          style={{
+            marginTop: "15px",
+            padding: "8px 16px",
+            backgroundColor: "#3498db",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Retry Loading Map
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="map-container">

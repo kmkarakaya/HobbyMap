@@ -27,20 +27,78 @@ const diveSitesCollection = collection(db, COLLECTION_NAME);
  */
 export const getDiveSites = async () => {
   try {
+    console.log("Starting to fetch dive sites...");
+    console.log("Collection reference:", diveSitesCollection);
+    console.log("DB reference:", db);
+
+    // First, check if we can access the collection at all
+    try {
+      const simpleSnapshot = await getDocs(diveSitesCollection);
+      console.log(
+        "Simple collection access successful, found",
+        simpleSnapshot.size,
+        "documents"
+      );
+    } catch (accessError) {
+      console.error("Failed basic collection access:", accessError);
+      console.error(
+        "Access error details:",
+        JSON.stringify(accessError, null, 2)
+      );
+      throw new Error(`Database access error: ${accessError.message}`);
+    }
+
+    // Now try with query
     const q = query(diveSitesCollection, orderBy("date", "desc"));
+    console.log("Query created, executing...");
+
     const querySnapshot = await getDocs(q);
+    console.log(
+      "Query successful, processing",
+      querySnapshot.size,
+      "documents"
+    );
 
-    const diveSites = querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-      // Convert Firestore Timestamp to JS Date for easier handling in UI
-      date: doc.data().date?.toDate(),
-    }));
+    const diveSites = [];
+    querySnapshot.forEach((doc) => {
+      try {
+        const data = doc.data();
+        console.log(`Processing document ${doc.id}:`, data);
 
+        // Safely convert date or use a fallback
+        let processedDate = null;
+        if (data.date) {
+          try {
+            processedDate = data.date.toDate ? data.date.toDate() : data.date;
+            console.log(`Converted date for ${doc.id}:`, processedDate);
+          } catch (dateError) {
+            console.warn(
+              `Date conversion error for document ${doc.id}:`,
+              dateError
+            );
+            // Use the original value or a fallback
+            processedDate = data.date;
+          }
+        }
+
+        // Add to our array with safe date handling
+        diveSites.push({
+          id: doc.id,
+          ...data,
+          date: processedDate,
+        });
+      } catch (docError) {
+        console.error(`Error processing document ${doc.id}:`, docError);
+        // Continue processing other documents
+      }
+    });
+
+    console.log("Successfully processed all documents, returning:", diveSites);
     return diveSites;
   } catch (error) {
     console.error("Error getting dive sites:", error);
-    throw error;
+    console.error("Error stack:", error.stack);
+    throw new Error(`Failed to load dive sites: ${error.message}`);
   }
 };
 
@@ -142,18 +200,57 @@ export const updateDiveSite = async (id, updateData) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
 
-    // First geocode the location if it has changed and coordinates not provided
+    // First get the existing dive site to check if location has changed
+    const existingDoc = await getDoc(docRef);
+    if (!existingDoc.exists()) {
+      throw new Error("Dive site not found");
+    }
+
+    const existingData = existingDoc.data();
+    console.log("Existing dive site data:", existingData);
+
     let dataToUpdate = { ...updateData };
 
-    if (
-      updateData.location &&
-      (!updateData.latitude || !updateData.longitude)
-    ) {
+    // Preserve the user's entered location value
+    const userEnteredLocation = updateData.location;
+    const existingLocation = existingData.location;
+    const locationHasChanged = userEnteredLocation !== existingLocation;
+
+    console.log("Location comparison:", {
+      userEnteredLocation,
+      existingLocation,
+      hasChanged: locationHasChanged,
+    });
+
+    // Debug logging
+    console.log("Update data received:", updateData);
+    console.log(
+      "Date type:",
+      updateData.date instanceof Date ? "Date object" : typeof updateData.date
+    );
+
+    // Ensure date is properly handled for Firestore
+    if (updateData.date && updateData.date instanceof Date) {
+      // Keep Date object for Firestore
+      console.log("Date is already a Date object:", updateData.date);
+    } else if (updateData.date && typeof updateData.date === "string") {
+      // Convert string to Date object
+      dataToUpdate.date = new Date(updateData.date);
+      console.log("Converted string date to Date object:", dataToUpdate.date);
+    }
+
+    // Always geocode if the location has changed
+    if (userEnteredLocation && locationHasChanged) {
       try {
-        const geoData = await geocodeLocation(updateData.location);
+        console.log(
+          "Location has changed, geocoding new location:",
+          userEnteredLocation
+        );
+        const geoData = await geocodeLocation(userEnteredLocation);
         if (geoData) {
           dataToUpdate.latitude = geoData.latitude;
           dataToUpdate.longitude = geoData.longitude;
+          console.log("New geocoded coordinates:", geoData);
         }
       } catch (geocodeError) {
         console.warn("Geocoding failed:", geocodeError);
@@ -163,20 +260,28 @@ export const updateDiveSite = async (id, updateData) => {
 
     // Add update timestamp
     dataToUpdate.updatedAt = serverTimestamp();
+    console.log("Final data to update:", dataToUpdate);
 
     await updateDoc(docRef, dataToUpdate);
+    console.log("Document updated successfully");
 
     // Get the updated document
     const updatedDoc = await getDoc(docRef);
     const data = updatedDoc.data();
+    console.log("Retrieved updated document data:", data);
 
-    return {
+    // Create return object with proper date handling
+    const returnData = {
       id: updatedDoc.id,
       ...data,
-      date: data.date?.toDate(),
+      // Handle date conversion - if it's a Firestore timestamp, convert to Date
+      date: data.date?.toDate ? data.date.toDate() : data.date,
     };
+
+    console.log("Returning data:", returnData);
+    return returnData;
   } catch (error) {
-    console.error("Error updating dive site:", error);
+    console.error("Error updating dive site:", error, error.stack);
     throw error;
   }
 };

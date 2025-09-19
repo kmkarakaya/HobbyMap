@@ -4,7 +4,8 @@ import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSitesList.css";
 
 const DiveSitesList = () => {
-  const { diveSites, loading, error, deleteDiveSite } = useFirebase();
+  const { diveSites, loading, error, deleteDiveSite, retryLoadDiveSites } =
+    useFirebase();
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this dive site?")) {
@@ -19,7 +20,30 @@ const DiveSitesList = () => {
   };
 
   if (loading) return <div className="loading">Loading dive sites...</div>;
-  if (error) return <div className="error">{error}</div>;
+
+  // Show error with retry button
+  if (error) {
+    return (
+      <div className="error">
+        <p>{error}</p>
+        <button
+          onClick={retryLoadDiveSites}
+          className="retry-button"
+          style={{
+            marginTop: "15px",
+            padding: "8px 16px",
+            backgroundColor: "#3498db",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Retry Loading
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="dive-sites-list-container">

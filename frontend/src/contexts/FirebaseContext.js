@@ -29,23 +29,69 @@ export const FirebaseProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Function to manually retry loading dive sites
+  const retryLoadDiveSites = async () => {
+    try {
+      console.log("FirebaseContext: Manually retrying loading dive sites...");
+      setLoading(true);
+      setError(null);
+
+      const sites = await fetchDiveSites();
+
+      console.log("FirebaseContext: Retry successful, sites loaded:", sites);
+      setDiveSites(sites);
+      setError(null);
+    } catch (err) {
+      console.error("FirebaseContext: Retry failed:", err);
+      setError("Failed to load dive sites. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Load all dive sites on component mount
   useEffect(() => {
+    let isMounted = true;
+
     const loadDiveSites = async () => {
       try {
+        console.log("FirebaseContext: Starting to load dive sites...");
         setLoading(true);
+        setError(null); // Clear any previous errors
+
         const sites = await fetchDiveSites();
-        setDiveSites(sites);
-        setError(null);
+
+        if (isMounted) {
+          console.log(
+            "FirebaseContext: Dive sites loaded successfully:",
+            sites
+          );
+          setDiveSites(sites);
+          setError(null);
+        }
       } catch (err) {
-        console.error("Error loading dive sites:", err);
-        setError("Failed to load dive sites. Please try again.");
+        console.error("FirebaseContext: Error loading dive sites:", err);
+        console.error("Error details:", err.message);
+        console.error("Error stack:", err.stack);
+
+        if (isMounted) {
+          setError("Failed to load dive sites. Please try again.");
+          // Even if there's an error, we'll still try to use any cached sites
+          console.log("FirebaseContext: Using cached dive sites:", diveSites);
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadDiveSites();
+
+    // Cleanup function to prevent state updates if the component unmounts
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Get a single dive site by ID
@@ -132,6 +178,7 @@ export const FirebaseProvider = ({ children }) => {
     updateDiveSite,
     deleteDiveSite,
     clearError,
+    retryLoadDiveSites, // Add the retry function
   };
 
   return (
