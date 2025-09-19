@@ -16,7 +16,35 @@ let DefaultIcon = L.icon({
   iconAnchor: [12, 41],
 });
 
-L.Marker.prototype.options.icon = DefaultIcon;
+// Instead of a global default, create deterministic per-site colored icons.
+const hashColor = (str) => {
+  if (!str) return "#3498db";
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    hash = hash & hash;
+  }
+  const h = Math.abs(hash) % 360; // hue
+  return `hsl(${h},70%,40%)`;
+};
+
+const createColoredIcon = (color) => {
+  const svg = `
+    <svg xmlns='http://www.w3.org/2000/svg' width='25' height='41' viewBox='0 0 24 24'>
+      <path d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z' fill='${color}'/>
+      <circle cx='12' cy='9' r='2.5' fill='white'/>
+    </svg>`;
+
+  const svgUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+
+  return L.icon({
+    iconUrl: svgUrl,
+    shadowUrl: iconShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [0, -41],
+  });
+};
 
 const DiveMap = () => {
   const { diveSites, loading, error, retryLoadDiveSites } = useFirebase();
@@ -65,7 +93,11 @@ const DiveMap = () => {
 
         {diveSites.map((site) =>
           site.latitude && site.longitude ? (
-            <Marker key={site.id} position={[site.latitude, site.longitude]}>
+            <Marker
+              key={site.id}
+              position={[site.latitude, site.longitude]}
+              icon={createColoredIcon(hashColor(site.id))}
+            >
               <Popup>
                 <div className="popup-content">
                   <h3>{site.siteName}</h3>

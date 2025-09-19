@@ -2,7 +2,19 @@ name: CI / Deploy to Firebase Hosting
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "main"]
+    paths:
+      - "frontend/**"
+      - "firebase.json"
+      - "firestore.rules"
+      - "firestore.indexes.json"
+  pull_request:
+    branches: ["master", "main"]
+    paths:
+      - "frontend/**"
+      - "firebase.json"
+      - "firestore.rules"
+      - "firestore.indexes.json"
 
 permissions:
   contents: read
