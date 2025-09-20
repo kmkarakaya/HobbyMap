@@ -1,6 +1,6 @@
-# Scuba Diving Map Tracker – Implementation Plan with Firebase
+# Hobby Map – Implementation Plan with Firebase
 
-This step-by-step plan will help guide Copilot and developers through building the app described in the project prompt using Firebase as the database.
+This step-by-step plan will help guide Copilot and developers through building the Hobby Map app using Firebase as the database.
 
 ---
 
@@ -31,14 +31,16 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 ### 2.2. Firestore Data Model
 
-- Design a Firestore collection for dive sites:
-  - `siteName` (String, required)
-  - `location` (String, required) - town/city name
+- Design a Firestore collection for hobby entries:
+  - `title` (String, required) - short human-friendly title
+  - `hobby` (String, required) - hobby or activity name
+  - `place` (String, required) - town/city/site name
+  - `country` (String)
   - `latitude` (Number)
   - `longitude` (Number)
   - `date` (Timestamp, required)
   - `notes` (String, optional)
-  - `userId` (String, optional) - For future auth integration
+  - `userId` (String, optional) - For auth integration
   - `createdAt` (Timestamp)
   - `updatedAt` (Timestamp)
 
@@ -84,28 +86,28 @@ This step-by-step plan will help guide Copilot and developers through building t
   - Firestore database access
   - Authentication methods (for future use)
 - Build custom hooks:
-  - `useDiveSites` - For fetching and managing dive sites
-  - `useGeocode` - For converting location names to coordinates
+  - `useEntries` or `useHobbyEntries` - For fetching and managing hobby entries
+  - `useGeocode` - For converting place + country names to coordinates
 
-### 3.3. Dive Site Management UI
+### 3.3. Entry Management UI
 
 - Create layout components:
   - Navigation header
   - Main content area
-- Build dive site list view:
-  - Table/card layout of all dive sites
-  - Sorting and filtering options
+-- Build entry list view:
+  - Table/card layout of all entries
+  - Sorting and filtering options (by date, hobby, country)
   - Quick actions (edit, delete)
-- Create dive site form component:
-  - Fields for site name, location, date, notes
+- Create entry form component:
+  - Fields for title, hobby, place, country, date, notes
   - Validation
   - Geocoding preview (show detected coordinates)
   - Submit and cancel buttons
-- Implement CRUD operations with Firestore:
-  - Create new dive site
-  - Read dive sites
-  - Update existing dive site
-  - Delete dive site
+  - Implement CRUD operations with Firestore:
+    - Create new entry
+    - Read entries
+    - Update existing entry
+    - Delete entry
 
 ### 3.4. Map Integration
 
@@ -118,8 +120,8 @@ This step-by-step plan will help guide Copilot and developers through building t
   - Convert to map markers
   - Custom marker icons (optional)
   - Handle loading and error states
-- Create interactive markers:
-  - Popup with site name, date, and notes
+-- Create interactive markers:
+  - Popup with title, hobby, date, and notes
   - Click handlers for additional details
   - Hover effects
 

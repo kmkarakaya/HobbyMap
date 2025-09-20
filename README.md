@@ -1,14 +1,15 @@
-# Scuba Diving Map Tracker (MVP)
 
-A web application that displays scuba diving sites on an interactive world map.
+# Hobby Map (MVP)
+
+A web application that records location-based hobby activities and displays them on an interactive world map.
 
 ## Overview
 
 This application allows you to:
 
-- Record dive sites you've visited around the world
-- View all your dive sites on an interactive map
-- Track the date and location of each dive
+- Record hobby entries or events you've attended around the world
+- View all your entries on an interactive map
+- Track the date, hobby, and location of each entry
 
 ## Project Structure
 

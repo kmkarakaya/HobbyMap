@@ -17,8 +17,8 @@ const EditDiveSitePage = () => {
         const data = await getDiveSite(id);
         setDiveSite(data);
       } catch (err) {
-        console.error("Error fetching dive site:", err);
-        setErrorMessage("Failed to load dive site. Please try again.");
+        console.error("Error fetching entry:", err);
+        setErrorMessage("Failed to load entry. Please try again.");
       } finally {
         setLoadingDiveSite(false);
       }
@@ -30,7 +30,7 @@ const EditDiveSitePage = () => {
   const handleSubmit = async (formData) => {
     try {
       console.log("Submitting updated form data:", formData);
-      console.log("Original dive site data:", diveSite);
+  console.log("Original entry data:", diveSite);
 
       // Check if location has been changed
       // Compare place/country to detect change
@@ -50,7 +50,8 @@ const EditDiveSitePage = () => {
       const dateObject = formData.date ? new Date(formData.date) : null;
 
       const dataToUpdate = {
-        siteName: formData.siteName,
+        title: formData.title || formData.siteName,
+        hobby: formData.hobby,
         place: formData.place,
         country: formData.country,
         date: dateObject, // Use Date object instead of string
@@ -68,19 +69,19 @@ const EditDiveSitePage = () => {
       await updateDiveSite(id, dataToUpdate);
       navigate("/dives");
     } catch (err) {
-      console.error("Error updating dive site:", err);
-      setErrorMessage("Failed to update dive site. Please try again.");
+      console.error("Error updating entry:", err);
+      setErrorMessage("Failed to update entry. Please try again.");
     }
   };
 
   if (loadingDiveSite)
-    return <div className="loading">Loading dive site...</div>;
+    return <div className="loading">Loading entry...</div>;
   if (errorMessage) return <div className="error">{errorMessage}</div>;
-  if (!diveSite) return <div className="error">Dive site not found.</div>;
+  if (!diveSite) return <div className="error">Entry not found.</div>;
 
   return (
     <div className="edit-dive-site-page">
-      <h1>Edit Dive Site</h1>
+  <h1>Edit Entry</h1>
       <DiveSiteForm
         initialData={diveSite}
         onSubmit={handleSubmit}

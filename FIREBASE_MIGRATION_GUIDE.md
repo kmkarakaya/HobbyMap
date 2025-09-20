@@ -1,6 +1,6 @@
 # MVP Setup with Firebase
 
-This document provides guidance for setting up the Scuba Diving Map Tracker using Firebase.
+This document provides guidance for setting up the Hobby Map application using Firebase.
 
 ## Firebase Setup
 
@@ -52,19 +52,21 @@ This document provides guidance for setting up the Scuba Diving Map Tracker usin
 
 ## Firestore Data Structure
 
-The application uses the following data structure in Firestore:
+The application uses the following data structure in Firestore (collection name kept as `diveSites` for compatibility, documents represent generic entries):
 
 ```javascript
-// Collection: diveSites
+// Collection: diveSites (represents hobby entries)
 {
-  "id": "auto-generated-document-id",
-  "siteName": "Blue Hole",
-  "location": "Belize City",
-  "latitude": 17.3156,
-  "longitude": -87.5346,
-  "date": Timestamp,
-  "notes": "Amazing dive with clear visibility",
-  "createdAt": Timestamp
+   "id": "auto-generated-document-id",
+   "title": "Saturday Milonga at El Ateneo",
+   "hobby": "Tango",
+   "place": "Buenos Aires",
+   "country": "Argentina",
+   "latitude": -34.6037,
+   "longitude": -58.3816,
+   "date": Timestamp,
+   "notes": "Great atmosphere, live music",
+   "createdAt": Timestamp
 }
 ```
 

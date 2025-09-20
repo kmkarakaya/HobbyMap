@@ -45,18 +45,18 @@ export const FirebaseProvider = ({ children }) => {
   // Function to manually retry loading dive sites
   const retryLoadDiveSites = async () => {
     try {
-      console.log("FirebaseContext: Manually retrying loading dive sites...");
+      console.log("FirebaseContext: Manually retrying loading entries...");
       setLoading(true);
       setError(null);
 
       const sites = await fetchDiveSites();
 
-      console.log("FirebaseContext: Retry successful, sites loaded:", sites);
+      console.log("FirebaseContext: Retry successful, entries loaded:", sites);
       setDiveSites(sites);
       setError(null);
     } catch (err) {
       console.error("FirebaseContext: Retry failed:", err);
-      setError("Failed to load dive sites. Please try again.");
+      setError("Failed to load entries. Please try again.");
     } finally {
       setLoading(false);
     }

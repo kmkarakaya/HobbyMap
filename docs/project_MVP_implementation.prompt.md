@@ -26,14 +26,17 @@ This simplified plan focuses on the essential features needed to get a working v
 
 ### 2.2. Firestore Data Model
 
-- Design a simple Firestore collection for dive sites:
-  - `siteName` (String)
-  - `location` (String) - city/town name
+-- Design a simple Firestore collection for hobby entries:
+  - `title` (String)
+  - `hobby` (String)
+  - `place` (String) - city/town name
+  - `country` (String)
   - `latitude` (Number)
   - `longitude` (Number)
   - `date` (Timestamp)
   - `notes` (String, optional)
-  - Recommended MVP: include `userId` (String, Firebase UID) or use a per-user subcollection `/users/{uid}/dives/{diveId}` so dive sites are scoped to individual users.
+  - Recommended MVP: include `userId` (String, Firebase UID) or use a per-user subcollection `/users/{uid}/entries/{entryId}` so entries are scoped to individual users.
+
 
 ### 2.3. Firebase Functions (Optional)
 
@@ -56,22 +59,22 @@ This simplified plan focuses on the essential features needed to get a working v
 
 - Create a Firebase config file
 - Set up Firebase context or hooks for data access
-- Implement functions for CRUD operations on dive sites
+  - Implement functions for CRUD operations on entries
   - Implement login, logout, and sign-up flows in the frontend using Firebase Auth
-  - Ensure all CRUD operations include or verify `userId` on writes and only read the authenticated user's dive sites
+  - Ensure all CRUD operations include or verify `userId` on writes and only read the authenticated user's entries
   - Add Firestore security rules that only allow authenticated users to read/write their own dive documents (rules sample should use `request.auth.uid` checks)
 
 ### 3.3. Core Components
 
 - Create a simple layout with header and main content area
-- Build a form to add/edit dive sites
-- Create a list view of dive sites
+ - Build a form to add/edit entries
+ - Create a list view of entries
 
 ### 3.4. Map Integration
 
 - Implement basic map with Leaflet.js
-- Display dive site locations as markers
-- Show site name and date in marker popups
+ - Display entry locations as markers
+ - Show entry title, hobby and date in marker popups
 - Make the map interactive (zoom, pan)
 
 ### 3.5. Responsive Design

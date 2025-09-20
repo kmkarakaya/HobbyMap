@@ -1,7 +1,7 @@
 const DiveSite = require("../models/DiveSite");
 const { geocodeLocation } = require("../utils/geocoder");
 
-// @desc    Get all dive sites
+// @desc    Get all entries
 // @route   GET /api/dives
 // @access  Public
 exports.getDiveSites = async (req, res) => {
@@ -21,7 +21,7 @@ exports.getDiveSites = async (req, res) => {
   }
 };
 
-// @desc    Get single dive site
+// @desc    Get single entry
 // @route   GET /api/dives/:id
 // @access  Public
 exports.getDiveSite = async (req, res) => {
@@ -31,7 +31,7 @@ exports.getDiveSite = async (req, res) => {
     if (!diveSite) {
       return res.status(404).json({
         success: false,
-        error: "Dive site not found",
+        error: "Entry not found",
       });
     }
 
@@ -47,7 +47,7 @@ exports.getDiveSite = async (req, res) => {
   }
 };
 
-// @desc    Create a dive site
+// @desc    Create an entry
 // @route   POST /api/dives
 // @access  Public
 exports.createDiveSite = async (req, res) => {
@@ -62,7 +62,7 @@ exports.createDiveSite = async (req, res) => {
       req.body.longitude = coordinates.longitude;
     }
 
-    const diveSite = await DiveSite.create(req.body);
+  const diveSite = await DiveSite.create(req.body);
 
     res.status(201).json({
       success: true,
@@ -85,7 +85,7 @@ exports.createDiveSite = async (req, res) => {
   }
 };
 
-// @desc    Update dive site
+// @desc    Update entry
 // @route   PUT /api/dives/:id
 // @access  Public
 exports.updateDiveSite = async (req, res) => {
@@ -107,7 +107,7 @@ exports.updateDiveSite = async (req, res) => {
     if (!diveSite) {
       return res.status(404).json({
         success: false,
-        error: "Dive site not found",
+        error: "Entry not found",
       });
     }
 
@@ -123,7 +123,7 @@ exports.updateDiveSite = async (req, res) => {
   }
 };
 
-// @desc    Delete dive site
+// @desc    Delete entry
 // @route   DELETE /api/dives/:id
 // @access  Public
 exports.deleteDiveSite = async (req, res) => {
@@ -133,7 +133,7 @@ exports.deleteDiveSite = async (req, res) => {
     if (!diveSite) {
       return res.status(404).json({
         success: false,
-        error: "Dive site not found",
+        error: "Entry not found",
       });
     }
 

@@ -105,7 +105,8 @@ const DiveMap = () => {
             >
               <Popup>
                 <div className="popup-content">
-                  <h3>{site.siteName}</h3>
+                  <h3>{site.title || site.siteName}</h3>
+                  {site.hobby && <p><strong>Hobby:</strong> {site.hobby}</p>}
                   <p>
                     <strong>Location:</strong>{" "}
                     {site.place || site.country

@@ -15,10 +15,10 @@ High priority (necessary for MVP)
 	- Acceptance criteria: Firestore rules file present and secure for reads/writes used by the app; rules stored in `frontend/firestore.rules` or top-level `firestore.rules` and validated with `firebase emulators` or `firebase deploy --only firestore:rules`.
 	- Suggested files: `firestore.rules`, `frontend/firestore.rules`, `firebase/*.js` (client config)
 
-2) Confirm Firestore data model and consistency (use `place` + `country` schema)
-	- Why: The app was refactored to use `place` + `country` (MVP). Ensure all read/write code, backend model, and docs are consistent.
-	- Acceptance criteria: All create/update flows write `place`, `country`, `latitude`, `longitude`, `date` (timestamp) and `siteName`/`notes`. No code path still writes or reads `location`.
-	- Suggested files: `frontend/src/firebase/diveService.js`, `frontend/src/pages/*`, `backend/models/DiveSite.js`, `backend/controllers/*`.
+2) Confirm Firestore data model and consistency (use `place` + `country` + `hobby` schema)
+	- Why: Project scope extended from scuba dives to arbitrary hobby entries. Ensure all read/write code, backend model, and docs are consistent with the new `title` and `hobby` fields while keeping `place` + `country` for geocoding.
+	- Acceptance criteria: All create/update flows write `title`, `hobby`, `place`, `country`, `latitude`, `longitude`, `date` (timestamp) and `notes`. No code path still writes or reads legacy `location` fields. Existing `siteName` usages should be mapped to `title` in UI and docs.
+	- Suggested files: `frontend/src/firebase/diveService.js`, `frontend/src/pages/*`, `backend/models/DiveSite.js`, `backend/controllers/*`, `frontend/src/components/DiveSiteForm.js`.
 
 3) Client-side geocoding reliability & debug logging
 	- Why: Geocoder previously returned wrong country-prefixed results for ambiguous names. We improved heuristics but need debug tooling to catch future mis-resolutions.
@@ -26,8 +26,8 @@ High priority (necessary for MVP)
 	- Suggested files: `frontend/src/firebase/geocoder.js`, `frontend/src/firebase/diveService.js`.
 
 4) Map marker behavior and verification
-	- Why: MVP requires interactive markers with popups showing siteName and date.
-	- Acceptance criteria: Map displays markers for saved dive sites; clicking shows siteName and ISO-formatted date; markers persist after reload.
+	- Why: MVP requires interactive markers with popups showing entry title, hobby and date.
+	- Acceptance criteria: Map displays markers for saved entries; clicking shows `title`, `hobby` and ISO-formatted date; markers persist after reload.
 	- Suggested files: `frontend/src/components/Map.js`, `frontend/src/components/DiveSitesList.js`.
 
 
@@ -37,7 +37,7 @@ High priority (necessary for MVP)
 		- On app startup the client checks Firebase Auth state immediately and routes appropriately (loading -> authenticated -> app, or loading -> unauthenticated -> auth UI).
 		- Auth UI provides sign-up and sign-in (email/password) and a Google Sign-In option.
 		- While auth state is being determined a visual loading state prevents flash of unauthenticated UI.
-		- All Firestore queries include the current user's UID (stored on each document as `userId` in the existing top-level `diveSites` collection) so users only see their own dive sites. (Note: for MVP we will keep the existing top-level `diveSites` collection and require `userId` on writes — migration is not required.)
+	- All Firestore queries include the current user's UID (stored on each document as `userId` in the existing top-level `diveSites` collection) so users only see their own entries. (Note: for MVP we will keep the existing top-level `diveSites` collection and require `userId` on writes — migration is not required.)
 		- Protected routes/components (map, dive list, add/edit forms) redirect to login if unauthenticated.
 		- Basic unit tests exist for the auth context/session-check logic (happy path + unauthenticated redirect).
 	- Files to change (MVP-focused):
@@ -45,7 +45,7 @@ High priority (necessary for MVP)
 		- `frontend/src/App.js` and `frontend/src/index.js` — ensure app is wrapped with the provider; do not render main routes until `isAuthReady` is true (context can show a global loading state).
 		- `frontend/src/pages/LoginPage.js`, `frontend/src/pages/SignupPage.js` — add Google Sign-In button + redirect after successful auth. If `user` exists, redirect away from auth pages.
 		- `frontend/src/components/ProtectedRoute.js` — use `isAuthReady` and `user` to prevent redirect until auth init completes; redirect to `/login` only after `isAuthReady` and user is null.
-		- `frontend/src/firebase/diveService.js` — continue using the top-level `diveSites` collection, but require `userId` on create/update; modify `getDiveSites(userId)` to query `where('userId', '==', userId)`.
+	- `frontend/src/firebase/diveService.js` — continue using the top-level `diveSites` collection, but require `userId` on create/update; modify `getDiveSites(userId)` to query `where('userId', '==', userId)`. Update field mapping for `title`/`hobby`.
 		- `frontend/src/components/Header.js` — already reads `user`; ensure sign-out clears local state and navigates if needed.
 	- Detailed step-by-step implementation (MVP, no migration):
 		1. Ensure `FirebaseContext` uses `onAuthStateChanged` and exposes an `isAuthReady` flag:
@@ -61,7 +61,7 @@ High priority (necessary for MVP)
 		5. Ensure `LoginPage` and `SignupPage` redirect when `user` exists:
 			- If `user` is present (context), run `navigate('/dives')` to avoid showing login to signed-in users.
 		6. Enforce `userId` on Firestore writes (simple serverless client-side enforcement):
-			- In `FirebaseContext.createDiveSite` attach `user.uid` to the document payload before calling the service.
+			- In `FirebaseContext.createDiveSite` attach `user.uid` to the document payload before calling the service. Rename UI payload fields (`siteName` -> `title`) as needed.
 			- In `diveService.createDiveSite` log/warn and reject if no `userId` present to catch programming mistakes during development.
 		7. Scope reads to `userId`:
 			- Update `getDiveSites(userId)` to require `userId` and query `where('userId', '==', userId)` (context already calls `fetchDiveSites(u.uid)`).
@@ -71,10 +71,10 @@ High priority (necessary for MVP)
 		9. Update firewall/rules notes for MVP:
 			- Provide `firestore.rules` that enforce `request.auth != null && request.auth.uid == request.resource.data.userId` on create/update where appropriate. Example rule for `diveSites` top-level:
 			  match /databases/{database}/documents {
-			    match /diveSites/{docId} {
-			      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-			      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-			    }
+								match /diveSites/{docId} {
+									allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+									allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+								}
 			  }
 			- Recommend testing rules with the Firebase emulator before deploying.
 	- Security note (MVP tradeoff):
@@ -103,14 +103,14 @@ Low / Optional priority (post-MVP)
 ---------------------------------
 
 8) User authentication (optional MVP enhancement)
-	- Why: Allows per-user dive histories and sharing.
-	- Acceptance criteria: Firebase Auth implemented (Google/email), dive sites scoped to user ID, UI login/logout flows.
+	- Why: Allows per-user histories and sharing.
+	- Acceptance criteria: Firebase Auth implemented (Google/email), entries scoped to user ID, UI login/logout flows.
 	- Suggested files: `frontend/src/contexts/FirebaseContext.js`, `frontend/src/pages/*`, `firebase/*.js`.
 
 9) Share map & export options
-	- Why: Project doc lists sharing as a feature.
-	- Acceptance criteria: Generate a sharable URL or export CSV of dive sites; public view (read-only) possible.
-	- Suggested files: new `frontend/src/pages/ShareMapPage.js`, small API or Firestore rule for public read.
+	 - Why: Project doc lists sharing as a feature.
+	 - Acceptance criteria: Generate a sharable URL or export CSV of entries; public view (read-only) possible.
+	 - Suggested files: new `frontend/src/pages/ShareMapPage.js`, small API or Firestore rule for public read.
 
 10) Marker clustering & performance for many sites
 	 - Why: If users add many sites, the map should remain usable.
@@ -138,6 +138,7 @@ Suggested next concrete tasks (in order)
 1. Add debug logging to `frontend/src/firebase/geocoder.js` (low-risk) and re-test problematic entries (Sharm el Sheikh, Zanzibar). (1-2 hrs)
 2. Migrate `country` to ISO2 in Firestore: change UI to store code and update geocoder to accept code. (2-4 hrs)
 3. Add latitude/longitude manual input fallback in `DiveSiteForm.js`. (1-2 hrs)
+4. Add `title` and `hobby` fields to `DiveSiteForm.js`, update `DiveSitesList` and `Map` popups to show `title` and `hobby`. (1-2 hrs)
 4. Harden Firestore security rules and include a `firestore.rules` in repo. (1-2 hrs)
 5. Add basic unit tests and a minimal CI step to run lint. (2-4 hrs)
 

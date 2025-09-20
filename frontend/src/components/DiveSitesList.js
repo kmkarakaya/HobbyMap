@@ -19,7 +19,7 @@ const DiveSitesList = () => {
     }
   };
 
-  if (loading) return <div className="loading">Loading dive sites...</div>;
+  if (loading) return <div className="loading">Loading entries...</div>;
 
   // Show error with retry button
   if (error) {
@@ -48,24 +48,25 @@ const DiveSitesList = () => {
   return (
     <div className="dive-sites-list-container">
       <div className="dive-sites-header">
-        <h2>My Dive Sites</h2>
+        <h2>My Entries</h2>
         <Link to="/add" className="add-button">
-          Add New Dive Site
+          Add New Entry
         </Link>
       </div>
 
       {diveSites.length === 0 ? (
         <div className="no-data">
-          <p>No dive sites found. Add your first dive site!</p>
+          <p>No entries found. Add your first entry!</p>
           <Link to="/add" className="add-button">
-            Add Dive Site
+            Add Entry
           </Link>
         </div>
       ) : (
         <div className="dive-sites-grid">
           {diveSites.map((site) => (
             <div className="dive-site-card" key={site.id}>
-              <h3>{site.siteName}</h3>
+              <h3>{site.title || site.siteName}</h3>
+              {site.hobby && <div className="hobby-label">{site.hobby}</div>}
               <p>
                 <strong>Location:</strong>{" "}
                 {site.place || site.country ? `${site.place || ""}${site.place && site.country ? ", " : ""}${site.country || ""}` : ""}

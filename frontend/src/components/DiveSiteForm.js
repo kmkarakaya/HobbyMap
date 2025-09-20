@@ -15,7 +15,8 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   const { createDiveSite, error: firebaseError, clearError } = useFirebase();
 
   const [formData, setFormData] = useState({
-    siteName: "",
+    title: "",
+    hobby: "",
     place: "", // city/town/site
     country: "",
     date: "",
@@ -65,9 +66,10 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
         console.log("Formatted from Firestore timestamp:", formattedDate);
       }
 
-      // Initialize place and country directly from initialData (MVP)
+      // Initialize title/hobby/place/country/date/notes from initialData
       setFormData({
-        siteName: initialData.siteName || "",
+        title: initialData.title || initialData.siteName || "",
+        hobby: initialData.hobby || "",
         place: initialData.place || "",
         country: initialData.country || "",
         date: formattedDate,
@@ -112,7 +114,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
     }
   };
 
-  const { siteName, place, country, date, notes } = formData;
+  const { title, hobby, place, country, date, notes } = formData;
 
   // Handle country selection change for react-select
   const handleCountryChange = (selectedOption) => {
@@ -163,7 +165,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
 
-    if (!siteName || !place || !country || !date) {
+    if (!title || !hobby || !place || !country || !date) {
       setError("Please fill all required fields");
       return;
     }
@@ -172,8 +174,8 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
       setLoading(true);
       console.log("Submitting form data:", formData);
 
-      // MVP payload: only include place and country (no combined location)
-      const payload = { ...formData, place: formData.place, country: formData.country };
+  // MVP payload: include title and hobby, and place/country for geocoding
+  const payload = { ...formData, place: formData.place, country: formData.country };
 
       if (isEditing && onSubmit) {
         await onSubmit(payload);
@@ -186,7 +188,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
     } catch (err) {
       console.error("Detailed error in form submission:", err);
       setError(
-        `Error ${isEditing ? "updating" : "creating"} dive site: ${
+        `Error ${isEditing ? "updating" : "creating"} entry: ${
           err.message || "Please try again."
         }`
       );
@@ -196,24 +198,37 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
 
   return (
     <div className="dive-site-form-container">
-      <h2>{isEditing ? "Edit Dive Site" : "Add New Dive Site"}</h2>
+      <h2>{isEditing ? "Edit Entry" : "Add New Entry"}</h2>
       {error && <div className="error-message">{error}</div>}
       <form onSubmit={handleFormSubmit}>
         <div className="form-group">
-          <label htmlFor="siteName">Site Name*</label>
+          <label htmlFor="title">Title*</label>
           <input
             type="text"
-            id="siteName"
-            name="siteName"
-            value={siteName}
+            id="title"
+            name="title"
+            value={title}
             onChange={onChange}
             required
-            placeholder="Enter the dive site name"
+            placeholder="Enter a short title for this entry (e.g. Milonga at El Ateneo)"
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="place">Site (city / town / site)*</label>
+          <label htmlFor="hobby">Hobby / Activity*</label>
+          <input
+            type="text"
+            id="hobby"
+            name="hobby"
+            value={hobby}
+            onChange={onChange}
+            required
+            placeholder="e.g. Tango, DJ, Photography"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="place">Place (city / town / site)*</label>
           <input
             type="text"
             id="place"
@@ -249,7 +264,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
               })
             }}
           />
-          <small>Search or select the country for the dive site</small>
+          <small>Search or select the country for this entry</small>
         </div>
 
   {/* Using separate place and country fields (no combined location) */}
@@ -273,7 +288,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
             name="notes"
             value={notes}
             onChange={onChange}
-            placeholder="Any additional notes about this dive"
+            placeholder="Any additional notes about this entry"
             rows="4"
           />
         </div>
@@ -290,8 +305,8 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
             {loading
               ? "Saving..."
               : isEditing
-              ? "Update Dive Site"
-              : "Save Dive Site"}
+              ? "Update Entry"
+              : "Save Entry"}
           </button>
 
           {/* Test Connection Button - Only show in Add mode */}

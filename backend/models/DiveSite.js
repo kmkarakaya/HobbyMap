@@ -2,9 +2,14 @@ const mongoose = require("mongoose");
 
 const diveSchema = new mongoose.Schema(
   {
-    siteName: {
+    title: {
       type: String,
-      required: [true, "Please enter a dive site name"],
+      required: [true, "Please enter a title for the entry"],
+      trim: true,
+    },
+    hobby: {
+      type: String,
+      required: [true, "Please enter the hobby or activity name"],
       trim: true,
     },
     place: {
@@ -27,7 +32,7 @@ const diveSchema = new mongoose.Schema(
     },
     date: {
       type: Date,
-      required: [true, "Please enter the date of your dive"],
+      required: [true, "Please enter the date of the entry"],
     },
     notes: {
       type: String,

@@ -1,4 +1,4 @@
-// Dive Site Firebase Service
+// Entry Firebase Service (stores 'entries' in the `diveSites` collection for backwards compatibility)
 import {
   collection,
   doc,
@@ -19,8 +19,8 @@ import { geocodeLocation } from "./geocoder";
 // For debugging - log the db object
 console.log("Firebase db object:", db);
 
-const COLLECTION_NAME = "diveSites";
-const diveSitesCollection = collection(db, COLLECTION_NAME);
+const COLLECTION_NAME = "diveSites"; // collection name kept for compatibility
+const entriesCollection = collection(db, COLLECTION_NAME);
 
 /**
  * Get all dive sites
@@ -31,8 +31,8 @@ export const getDiveSites = async (userId = null) => {
     if (!userId) {
       throw new Error('getDiveSites requires a userId to scope results to the current user');
     }
-    console.log("Starting to fetch dive sites...");
-    console.log("Collection reference:", diveSitesCollection);
+  console.log("Starting to fetch entries...");
+  console.log("Collection reference:", entriesCollection);
     console.log("DB reference:", db);
 
     // First, check if we can access the collection at all
@@ -57,7 +57,7 @@ export const getDiveSites = async (userId = null) => {
     let querySnapshot = null;
     try {
       const q = query(
-        diveSitesCollection,
+        entriesCollection,
         where("userId", "==", userId),
         orderBy("date", "desc")
       );
@@ -77,7 +77,7 @@ export const getDiveSites = async (userId = null) => {
         orderedQueryError
       );
       try {
-        const fallbackQ = query(diveSitesCollection, where("userId", "==", userId));
+  const fallbackQ = query(entriesCollection, where("userId", "==", userId));
         console.log("Executing fallback query without orderBy...");
         querySnapshot = await getDocs(fallbackQ);
         console.log(
@@ -91,7 +91,7 @@ export const getDiveSites = async (userId = null) => {
       }
     }
 
-    const diveSites = [];
+    const entries = [];
     querySnapshot.forEach((doc) => {
       try {
         const data = doc.data();
@@ -114,19 +114,15 @@ export const getDiveSites = async (userId = null) => {
         }
 
         // Add to our array with safe date handling
-        diveSites.push({
-          id: doc.id,
-          ...data,
-          date: processedDate,
-        });
+        entries.push({ id: doc.id, ...data, date: processedDate });
       } catch (docError) {
         console.error(`Error processing document ${doc.id}:`, docError);
         // Continue processing other documents
       }
     });
 
-    console.log("Successfully processed all documents, returning:", diveSites);
-    return diveSites;
+    console.log("Successfully processed all documents, returning:", entries);
+    return entries;
   } catch (error) {
     console.error("Error getting dive sites:", error);
     console.error("Error stack:", error.stack);
@@ -143,7 +139,7 @@ export const getDiveSites = async (userId = null) => {
  */
 export const getDiveSite = async (id) => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
+  const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -163,9 +159,9 @@ export const getDiveSite = async (id) => {
 };
 
 /**
- * Create a new dive site
- * @param {Object} diveSiteData - Dive site data
- * @returns {Promise<Object>} Created dive site with ID
+ * Create a new entry
+ * @param {Object} diveSiteData - entry data
+ * @returns {Promise<Object>} Created entry with ID
  */
 export const createDiveSite = async (diveSiteData) => {
   try {
@@ -173,8 +169,8 @@ export const createDiveSite = async (diveSiteData) => {
     if (!diveSiteData || !diveSiteData.userId) {
       throw new Error('createDiveSite requires diveSiteData.userId to be set (current user)');
     }
-    // Debug: Log the data we received
-    console.log("Creating dive site with data:", diveSiteData);
+  // Debug: Log the data we received
+  console.log("Creating entry with data:", diveSiteData);
 
     // First geocode the location if not already geocoded
     let newDiveSite = { ...diveSiteData };
@@ -217,8 +213,8 @@ export const createDiveSite = async (diveSiteData) => {
     newDiveSite.createdAt = serverTimestamp();
     console.log("Final dive site data to save:", newDiveSite);
 
-    const docRef = await addDoc(diveSitesCollection, newDiveSite);
-    console.log("Document written with ID:", docRef.id);
+  const docRef = await addDoc(entriesCollection, newDiveSite);
+  console.log("Document written with ID:", docRef.id);
 
     // Get the newly created document to return it with the ID
     const newDoc = await getDoc(docRef);
@@ -226,12 +222,7 @@ export const createDiveSite = async (diveSiteData) => {
     console.log("Retrieved new document data:", data);
 
     // Create the return object with proper handling of date
-    const returnData = {
-      id: docRef.id,
-      ...data,
-      // Handle date conversion - if it's a Firestore timestamp, convert to Date
-      date: data.date?.toDate ? data.date.toDate() : data.date,
-    };
+    const returnData = { id: docRef.id, ...data, date: data.date?.toDate ? data.date.toDate() : data.date };
     console.log("Returning data:", returnData);
     return returnData;
   } catch (error) {
@@ -252,7 +243,7 @@ export const updateDiveSite = async (id, updateData) => {
     if (!updateData || !updateData.userId) {
       throw new Error('updateDiveSite requires updateData.userId to be set (current user)');
     }
-    const docRef = doc(db, COLLECTION_NAME, id);
+  const docRef = doc(db, COLLECTION_NAME, id);
 
   // First get the existing dive site to check if location has changed
     const existingDoc = await getDoc(docRef);
@@ -261,7 +252,7 @@ export const updateDiveSite = async (id, updateData) => {
     }
 
     const existingData = existingDoc.data();
-    console.log("Existing dive site data:", existingData);
+  console.log("Existing entry data:", existingData);
 
     let dataToUpdate = { ...updateData };
 
@@ -279,7 +270,7 @@ export const updateDiveSite = async (id, updateData) => {
     });
 
     // Debug logging
-    console.log("Update data received:", updateData);
+  console.log("Update data received:", updateData);
     console.log(
       "Date type:",
       updateData.date instanceof Date ? "Date object" : typeof updateData.date
@@ -317,7 +308,7 @@ export const updateDiveSite = async (id, updateData) => {
     dataToUpdate.updatedAt = serverTimestamp();
     console.log("Final data to update:", dataToUpdate);
 
-    await updateDoc(docRef, dataToUpdate);
+  await updateDoc(docRef, dataToUpdate);
     console.log("Document updated successfully");
 
     // Get the updated document
@@ -336,7 +327,7 @@ export const updateDiveSite = async (id, updateData) => {
     console.log("Returning data:", returnData);
     return returnData;
   } catch (error) {
-    console.error("Error updating dive site:", error, error.stack);
+    console.error("Error updating entry:", error, error.stack);
     throw error;
   }
 };
@@ -351,7 +342,7 @@ export const deleteDiveSite = async (id) => {
     const docRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(docRef);
   } catch (error) {
-    console.error("Error deleting dive site:", error);
+    console.error("Error deleting entry:", error);
     throw error;
   }
 };
