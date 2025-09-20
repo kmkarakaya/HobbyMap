@@ -1,14 +1,16 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import "./Header.css";
 
 const Header = () => {
   const { user, signOut } = useFirebase();
+  const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
       await signOut();
+      navigate('/login');
     } catch (err) {
       // ignore for now
     }

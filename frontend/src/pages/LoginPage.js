@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
 
 const LoginPage = () => {
-  const { signIn } = useFirebase();
+  const { signIn, signInWithGoogle, user } = useFirebase();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,6 +24,24 @@ const LoginPage = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+      navigate('/dives');
+    } catch (err) {
+      setError(err.message || 'Google sign-in failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If already signed in, redirect away from login page
+  React.useEffect(() => {
+    if (user) navigate('/dives');
+  }, [user, navigate]);
+
   return (
     <div className="auth-page">
       <h2>Sign in</h2>
@@ -41,6 +59,10 @@ const LoginPage = () => {
           <button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
         </div>
       </form>
+
+      <div style={{ marginTop: 12 }}>
+        <button onClick={handleGoogleSignIn} disabled={loading}>Sign in with Google</button>
+      </div>
     </div>
   );
 };

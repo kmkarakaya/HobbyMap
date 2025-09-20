@@ -28,6 +28,9 @@ const diveSitesCollection = collection(db, COLLECTION_NAME);
  */
 export const getDiveSites = async (userId = null) => {
   try {
+    if (!userId) {
+      throw new Error('getDiveSites requires a userId to scope results to the current user');
+    }
     console.log("Starting to fetch dive sites...");
     console.log("Collection reference:", diveSitesCollection);
     console.log("DB reference:", db);
@@ -51,9 +54,7 @@ export const getDiveSites = async (userId = null) => {
 
     // Now try with query
     // If userId provided, scope query to that user's dive sites
-    const q = userId
-      ? query(diveSitesCollection, where("userId", "==", userId), orderBy("date", "desc"))
-      : query(diveSitesCollection, orderBy("date", "desc"));
+    const q = query(diveSitesCollection, where("userId", "==", userId), orderBy("date", "desc"));
     console.log("Query created, executing...");
 
     const querySnapshot = await getDocs(q);
@@ -139,6 +140,10 @@ export const getDiveSite = async (id) => {
  */
 export const createDiveSite = async (diveSiteData) => {
   try {
+    // Require userId to be present for MVP per-user scoping
+    if (!diveSiteData || !diveSiteData.userId) {
+      throw new Error('createDiveSite requires diveSiteData.userId to be set (current user)');
+    }
     // Debug: Log the data we received
     console.log("Creating dive site with data:", diveSiteData);
 
@@ -170,9 +175,13 @@ export const createDiveSite = async (diveSiteData) => {
       }
     }
 
-    // Add userId if provided
+    // Add userId if provided (keep as-is). If none provided, log a warning.
     if (newDiveSite.userId && typeof newDiveSite.userId === "string") {
       // keep as-is
+    } else {
+      console.warn(
+        "createDiveSite: No userId provided. Documents will be created without per-user scoping."
+      );
     }
 
     // Add server timestamp
@@ -210,9 +219,13 @@ export const createDiveSite = async (diveSiteData) => {
  */
 export const updateDiveSite = async (id, updateData) => {
   try {
+    // Require userId in update payload for MVP
+    if (!updateData || !updateData.userId) {
+      throw new Error('updateDiveSite requires updateData.userId to be set (current user)');
+    }
     const docRef = doc(db, COLLECTION_NAME, id);
 
-    // First get the existing dive site to check if location has changed
+  // First get the existing dive site to check if location has changed
     const existingDoc = await getDoc(docRef);
     if (!existingDoc.exists()) {
       throw new Error("Dive site not found");

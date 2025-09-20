@@ -7,6 +7,8 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
 import {
   getDiveSites as fetchDiveSites,
@@ -34,6 +36,9 @@ export const useFirebase = () => {
 export const FirebaseProvider = ({ children }) => {
   const [diveSites, setDiveSites] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Track whether we've received the initial auth state from Firebase
+  // This prevents a flash of unauthenticated UI while the SDK initializes
+  const [authInitializing, setAuthInitializing] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
 
@@ -60,9 +65,17 @@ export const FirebaseProvider = ({ children }) => {
   // Subscribe to auth state and load user's dive sites
   useEffect(() => {
     let isMounted = true;
+    // Use a ref-like flag to ensure we only flip authInitializing once without adding it as a dependency
+    let initialized = false;
 
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       if (!isMounted) return;
+      // Mark that we've received the first auth state from Firebase
+      if (!initialized) {
+        setAuthInitializing(false);
+        initialized = true;
+      }
+
       setUser(u);
       if (u) {
         // User logged in - load user's dive sites
@@ -109,9 +122,9 @@ export const FirebaseProvider = ({ children }) => {
   const createDiveSite = async (diveSiteData) => {
     try {
       setLoading(true);
-      // Attach current user's UID if available
-      const payload = { ...diveSiteData };
-      if (user && user.uid) payload.userId = user.uid;
+      // Ensure a user is signed in for MVP (require userId)
+      if (!user || !user.uid) throw new Error('Must be signed in to create a dive site');
+      const payload = { ...diveSiteData, userId: user.uid };
       const newSite = await addDiveSite(payload);
 
       // Update the local state with the new dive site
@@ -130,7 +143,10 @@ export const FirebaseProvider = ({ children }) => {
   const updateDiveSite = async (id, diveSiteData) => {
     try {
       setLoading(true);
-      const updatedSite = await editDiveSite(id, diveSiteData);
+      // For MVP, ensure user is present and include userId to protect writes
+      if (!user || !user.uid) throw new Error('Must be signed in to update a dive site');
+      const payload = { ...diveSiteData, userId: user.uid };
+      const updatedSite = await editDiveSite(id, payload);
 
       // Update the local state with the updated dive site
       setDiveSites((prevSites) =>
@@ -196,6 +212,33 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
+  // Google Sign-In
+  const signInWithGoogle = async () => {
+    try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
+      const cred = await signInWithPopup(auth, provider);
+      setUser(cred.user);
+      return cred.user;
+    } catch (err) {
+        // Provide a clearer message for common misconfiguration
+        if (err && err.code === 'auth/configuration-not-found') {
+          const friendly =
+            "Google Sign-In is not configured for this Firebase project. " +
+            "Open the Firebase Console -> Authentication -> Sign-in method and enable 'Google', " +
+            "and add your app's origin to Authorized domains (e.g. localhost:3000).";
+          setError(friendly);
+          console.error('Google sign-in configuration missing:', err);
+          throw new Error(friendly);
+        }
+
+        setError(err.message || "Failed to sign in with Google");
+        throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const signOut = async () => {
     try {
       setLoading(true);
@@ -227,14 +270,22 @@ export const FirebaseProvider = ({ children }) => {
     deleteDiveSite,
     signUp,
     signIn,
+    signInWithGoogle,
     signOut,
     clearError,
     retryLoadDiveSites, // Add the retry function
+    // Expose a simple ready flag so consumers can avoid redirect/flash
+    isAuthReady: !authInitializing,
   };
 
   return (
     <FirebaseContext.Provider value={value}>
-      {children}
+      {authInitializing ? (
+        // Simple loading state while Firebase determines auth status
+        <div style={{padding: 40, textAlign: 'center'}}>Initializing authentication...</div>
+      ) : (
+        children
+      )}
     </FirebaseContext.Provider>
   );
 };
