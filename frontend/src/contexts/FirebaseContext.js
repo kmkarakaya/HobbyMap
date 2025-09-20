@@ -127,8 +127,17 @@ export const FirebaseProvider = ({ children }) => {
       const payload = { ...diveSiteData, userId: user.uid };
       const newSite = await addDiveSite(payload);
 
-      // Update the local state with the new dive site
-      setDiveSites((prevSites) => [newSite, ...prevSites]);
+      // After creating the site, re-fetch the authoritative list from
+      // Firestore to ensure server-side fields (timestamps) and indexes are
+      // applied and to avoid visibility issues on subsequent sign-in.
+      try {
+        const refreshed = await fetchDiveSites(user.uid);
+        setDiveSites(refreshed);
+      } catch (refreshErr) {
+        // If refresh fails for any reason, fall back to optimistic update
+        console.warn("Failed to refresh dive sites after create:", refreshErr);
+        setDiveSites((prevSites) => [newSite, ...prevSites]);
+      }
 
       return newSite;
     } catch (err) {

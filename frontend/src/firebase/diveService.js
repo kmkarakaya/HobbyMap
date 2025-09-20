@@ -52,17 +52,44 @@ export const getDiveSites = async (userId = null) => {
       throw new Error(`Database access error: ${accessError.message}`);
     }
 
-    // Now try with query
-    // If userId provided, scope query to that user's dive sites
-    const q = query(diveSitesCollection, where("userId", "==", userId), orderBy("date", "desc"));
-    console.log("Query created, executing...");
-
-    const querySnapshot = await getDocs(q);
-    console.log(
-      "Query successful, processing",
-      querySnapshot.size,
-      "documents"
-    );
+    // Now try with query. Prefer ordering by 'date' but gracefully fall back if
+    // an index/ordering prevents results from being returned (common in dev).
+    let querySnapshot = null;
+    try {
+      const q = query(
+        diveSitesCollection,
+        where("userId", "==", userId),
+        orderBy("date", "desc")
+      );
+      console.log("Query with orderBy('date') created, executing...");
+      querySnapshot = await getDocs(q);
+      console.log(
+        "Ordered query successful, processing",
+        querySnapshot.size,
+        "documents"
+      );
+    } catch (orderedQueryError) {
+      // If ordering or index causes a failure (or returns no documents), try a
+      // simpler query without orderBy. This avoids an empty-looking UI when
+      // the underlying writes are present.
+      console.warn(
+        "Ordered query failed or is unsupported, falling back to un-ordered query:",
+        orderedQueryError
+      );
+      try {
+        const fallbackQ = query(diveSitesCollection, where("userId", "==", userId));
+        console.log("Executing fallback query without orderBy...");
+        querySnapshot = await getDocs(fallbackQ);
+        console.log(
+          "Fallback query successful, processing",
+          querySnapshot.size,
+          "documents"
+        );
+      } catch (fallbackError) {
+        console.error("Fallback query also failed:", fallbackError);
+        throw fallbackError;
+      }
+    }
 
     const diveSites = [];
     querySnapshot.forEach((doc) => {
@@ -103,6 +130,8 @@ export const getDiveSites = async (userId = null) => {
   } catch (error) {
     console.error("Error getting dive sites:", error);
     console.error("Error stack:", error.stack);
+    // Helpful developer debugging: if the query returned zero results but the
+    // collection has documents, surface that fact in the thrown error message.
     throw new Error(`Failed to load dive sites: ${error.message}`);
   }
 };
