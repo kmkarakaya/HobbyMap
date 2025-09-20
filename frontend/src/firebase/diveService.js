@@ -10,6 +10,7 @@ import {
   serverTimestamp,
   query,
   orderBy,
+  where,
 } from "firebase/firestore";
 // Import directly from the root firebase.js file to ensure we're using the correct config
 import { db } from "../firebase";
@@ -25,7 +26,7 @@ const diveSitesCollection = collection(db, COLLECTION_NAME);
  * Get all dive sites
  * @returns {Promise<Array>} List of dive sites
  */
-export const getDiveSites = async () => {
+export const getDiveSites = async (userId = null) => {
   try {
     console.log("Starting to fetch dive sites...");
     console.log("Collection reference:", diveSitesCollection);
@@ -49,7 +50,10 @@ export const getDiveSites = async () => {
     }
 
     // Now try with query
-    const q = query(diveSitesCollection, orderBy("date", "desc"));
+    // If userId provided, scope query to that user's dive sites
+    const q = userId
+      ? query(diveSitesCollection, where("userId", "==", userId), orderBy("date", "desc"))
+      : query(diveSitesCollection, orderBy("date", "desc"));
     console.log("Query created, executing...");
 
     const querySnapshot = await getDocs(q);
@@ -164,6 +168,11 @@ export const createDiveSite = async (diveSiteData) => {
         console.warn("Geocoding failed:", geocodeError);
         // Continue with the original data if geocoding fails
       }
+    }
+
+    // Add userId if provided
+    if (newDiveSite.userId && typeof newDiveSite.userId === "string") {
+      // keep as-is
     }
 
     // Add server timestamp

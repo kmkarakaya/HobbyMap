@@ -29,6 +29,16 @@ Create an app to record and visualize scuba diving sites visited around the worl
 - Make the map interactive (zoom, pan, marker popups)
 - Ensure responsive design for mobile and desktop
 
+## User accounts and per-user data
+
+- Add a simple authentication mechanism so users can sign up, sign in, and sign out.
+  - Recommended: Firebase Authentication (Google Sign-In and Email/Password for MVP).
+- Store dive sites per-user so each user's dive history is private by default.
+  - Data model: include `userId` (Firebase UID) on each dive site document, or use a subcollection under each user: `/users/{uid}/dives/{diveId}`.
+- The app should show only the currently authenticated user's dive sites in their dashboard and map view.
+- Provide a simple profile area to view or edit account info (display name, photo).
+- Ensure Firestore security rules enforce per-user access (only allow reads/writes for authenticated user matching `request.auth.uid`).
+
 ## Data Model Example (Firestore)
 
 ```js
@@ -38,6 +48,7 @@ Create an app to record and visualize scuba diving sites visited around the worl
   location: "Belize City",
   latitude: 17.3156,
   longitude: -87.5346,
+  userId: "<firebase-uid>",
   date: Timestamp,
   notes: "Amazing dive with sharks"
 }

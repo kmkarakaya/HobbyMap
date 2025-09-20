@@ -1,8 +1,19 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { useFirebase } from "../contexts/FirebaseContext";
 import "./Header.css";
 
 const Header = () => {
+  const { user, signOut } = useFirebase();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      // ignore for now
+    }
+  };
+
   return (
     <header className="header">
       <div className="container">
@@ -22,6 +33,20 @@ const Header = () => {
             </li>
           </ul>
         </nav>
+
+        <div className="auth-actions">
+          {user ? (
+            <>
+              <span className="user-name">{user.displayName || user.email}</span>
+              <button onClick={handleSignOut}>Sign out</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">Sign in</Link>
+              <Link to="/signup">Sign up</Link>
+            </>
+          )}
+        </div>
       </div>
     </header>
   );

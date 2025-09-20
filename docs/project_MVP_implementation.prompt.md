@@ -20,7 +20,8 @@ This simplified plan focuses on the essential features needed to get a working v
 
 - Create a new Firebase project
 - Set up Firestore database
-- Configure Firebase Authentication (optional for MVP)
+ - Set up Firestore database
+ - Configure Firebase Authentication (required for MVP): enable Email/Password and Google Sign-In providers for quick onboarding
 - Add Firebase SDK to the project
 
 ### 2.2. Firestore Data Model
@@ -32,6 +33,7 @@ This simplified plan focuses on the essential features needed to get a working v
   - `longitude` (Number)
   - `date` (Timestamp)
   - `notes` (String, optional)
+  - Recommended MVP: include `userId` (String, Firebase UID) or use a per-user subcollection `/users/{uid}/dives/{diveId}` so dive sites are scoped to individual users.
 
 ### 2.3. Firebase Functions (Optional)
 
@@ -55,6 +57,9 @@ This simplified plan focuses on the essential features needed to get a working v
 - Create a Firebase config file
 - Set up Firebase context or hooks for data access
 - Implement functions for CRUD operations on dive sites
+  - Implement login, logout, and sign-up flows in the frontend using Firebase Auth
+  - Ensure all CRUD operations include or verify `userId` on writes and only read the authenticated user's dive sites
+  - Add Firestore security rules that only allow authenticated users to read/write their own dive documents (rules sample should use `request.auth.uid` checks)
 
 ### 3.3. Core Components
 
@@ -88,6 +93,8 @@ This simplified plan focuses on the essential features needed to get a working v
 
 - Deploy the React app to Firebase Hosting
 - Set up proper security rules for Firestore
+ - Deploy the React app to Firebase Hosting
+ - Set up proper security rules for Firestore (enforce per-user access) and test them with the Firebase emulator
 
 ---
 

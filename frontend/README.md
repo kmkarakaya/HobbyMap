@@ -1,3 +1,5 @@
+// See the top-level README.md for project overview and cross-repo setup notes.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

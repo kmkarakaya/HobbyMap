@@ -5,6 +5,9 @@ import HomePage from "./pages/HomePage";
 import DiveSitesPage from "./pages/DiveSitesPage";
 import AddDiveSitePage from "./pages/AddDiveSitePage";
 import EditDiveSitePage from "./pages/EditDiveSitePage";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { FirebaseProvider } from "./contexts/FirebaseContext";
 import "./App.css";
 
@@ -18,8 +21,24 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/dives" element={<DiveSitesPage />} />
-              <Route path="/add" element={<AddDiveSitePage />} />
-              <Route path="/edit/:id" element={<EditDiveSitePage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route
+                path="/add"
+                element={
+                  <ProtectedRoute>
+                    <AddDiveSitePage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/edit/:id"
+                element={
+                  <ProtectedRoute>
+                    <EditDiveSitePage />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
         </div>

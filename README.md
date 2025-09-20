@@ -58,6 +58,14 @@ This application allows you to:
    npm start
    ```
 
+## Frontend
+
+The frontend application lives in the `frontend/` directory and is a Create React App project. Detailed frontend-specific development and build instructions are in `frontend/README.md`.
+
+Quick links:
+
+- Frontend README: `frontend/README.md`
+- Frontend code: `frontend/src/`
 ## Deployment
 
 To deploy to Firebase Hosting:

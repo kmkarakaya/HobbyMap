@@ -1,6 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 // Import db directly from the root firebase.js file which has the correct config
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  updateProfile,
+} from "firebase/auth";
 import {
   getDiveSites as fetchDiveSites,
   getDiveSite as fetchDiveSite,
@@ -28,6 +35,7 @@ export const FirebaseProvider = ({ children }) => {
   const [diveSites, setDiveSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
 
   // Function to manually retry loading dive sites
   const retryLoadDiveSites = async () => {
@@ -49,50 +57,37 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
-  // Load all dive sites on component mount
+  // Subscribe to auth state and load user's dive sites
   useEffect(() => {
     let isMounted = true;
 
-    const loadDiveSites = async () => {
-      try {
-        console.log("FirebaseContext: Starting to load dive sites...");
-        setLoading(true);
-        setError(null); // Clear any previous errors
-
-        const sites = await fetchDiveSites();
-
-        if (isMounted) {
-          console.log(
-            "FirebaseContext: Dive sites loaded successfully:",
-            sites
-          );
+    const unsubscribe = onAuthStateChanged(auth, async (u) => {
+      if (!isMounted) return;
+      setUser(u);
+      if (u) {
+        // User logged in - load user's dive sites
+        try {
+          setLoading(true);
+          const sites = await fetchDiveSites(u.uid);
           setDiveSites(sites);
           setError(null);
-        }
-      } catch (err) {
-        console.error("FirebaseContext: Error loading dive sites:", err);
-        console.error("Error details:", err.message);
-        console.error("Error stack:", err.stack);
-
-        if (isMounted) {
+        } catch (err) {
+          console.error("FirebaseContext: Error loading user's dive sites:", err);
           setError("Failed to load dive sites. Please try again.");
-          // Even if there's an error, we'll still try to use any cached sites
-          console.log(
-            "FirebaseContext: Using cached dive sites (state may be stale)"
-          );
-        }
-      } finally {
-        if (isMounted) {
+        } finally {
           setLoading(false);
         }
+      } else {
+        // User logged out - clear dive sites
+        setDiveSites([]);
+        setLoading(false);
+        setError(null);
       }
-    };
+    });
 
-    loadDiveSites();
-
-    // Cleanup function to prevent state updates if the component unmounts
     return () => {
       isMounted = false;
+      unsubscribe();
     };
   }, []);
 
@@ -114,7 +109,10 @@ export const FirebaseProvider = ({ children }) => {
   const createDiveSite = async (diveSiteData) => {
     try {
       setLoading(true);
-      const newSite = await addDiveSite(diveSiteData);
+      // Attach current user's UID if available
+      const payload = { ...diveSiteData };
+      if (user && user.uid) payload.userId = user.uid;
+      const newSite = await addDiveSite(payload);
 
       // Update the local state with the new dive site
       setDiveSites((prevSites) => [newSite, ...prevSites]);
@@ -166,12 +164,60 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
+  // Auth methods
+  const signUp = async (email, password, displayName) => {
+    try {
+      setLoading(true);
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      if (displayName) {
+        await updateProfile(cred.user, { displayName });
+      }
+      setUser(cred.user);
+      return cred.user;
+    } catch (err) {
+      setError(err.message || "Failed to sign up");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signIn = async (email, password) => {
+    try {
+      setLoading(true);
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      setUser(cred.user);
+      return cred.user;
+    } catch (err) {
+      setError(err.message || "Failed to sign in");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      setLoading(true);
+      await firebaseSignOut(auth);
+      setUser(null);
+      setDiveSites([]);
+    } catch (err) {
+      setError(err.message || "Failed to sign out");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Clear any error
   const clearError = () => setError(null);
 
   // Values provided to consumers of this context
   const value = {
     db,
+    auth,
+    user,
     diveSites,
     loading,
     error,
@@ -179,6 +225,9 @@ export const FirebaseProvider = ({ children }) => {
     createDiveSite,
     updateDiveSite,
     deleteDiveSite,
+    signUp,
+    signIn,
+    signOut,
     clearError,
     retryLoadDiveSites, // Add the retry function
   };
