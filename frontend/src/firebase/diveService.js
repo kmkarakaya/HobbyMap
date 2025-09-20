@@ -37,7 +37,10 @@ export const getDiveSites = async (userId = null) => {
 
     // First, check if we can access the collection at all
     try {
-      const simpleSnapshot = await getDocs(diveSitesCollection);
+      // `entriesCollection` is the correct collection reference (keeps compatibility
+      // with the existing `diveSites` collection name). `diveSitesCollection` was
+      // an old/incorrect identifier that caused a lint/runtime failure.
+      const simpleSnapshot = await getDocs(entriesCollection);
       console.log(
         "Simple collection access successful, found",
         simpleSnapshot.size,
@@ -123,12 +126,12 @@ export const getDiveSites = async (userId = null) => {
 
     console.log("Successfully processed all documents, returning:", entries);
     return entries;
-  } catch (error) {
+    } catch (error) {
     console.error("Error getting dive sites:", error);
     console.error("Error stack:", error.stack);
     // Helpful developer debugging: if the query returned zero results but the
     // collection has documents, surface that fact in the thrown error message.
-    throw new Error(`Failed to load dive sites: ${error.message}`);
+    throw new Error(`Failed to load entries: ${error.message}`);
   }
 };
 
