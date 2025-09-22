@@ -20,7 +20,7 @@ const Header = () => {
     <header className="header">
       <div className="container">
         <h1>
-          <Link to="/">Scuba Diving Map Tracker</Link>
+          <Link to="/">Hobby Map Tracker</Link>
         </h1>
         <nav>
           <ul>
@@ -28,10 +28,10 @@ const Header = () => {
               <Link to="/">Map</Link>
             </li>
             <li>
-              <Link to="/dives">Dive Sites</Link>
+              <Link to="/entries">My Entries</Link>
             </li>
             <li>
-              <Link to="/add">Add Dive Site</Link>
+              <Link to="/add">Add Entry</Link>
             </li>
           </ul>
         </nav>

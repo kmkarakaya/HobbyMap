@@ -1,4 +1,4 @@
-// Comprehensive list of countries with ISO2 codes for dive site locations
+// Comprehensive list of countries with ISO2 codes for hobby location entries
 const countries = [
   { name: "Afghanistan", code: "AF" },
   { name: "Albania", code: "AL" },
