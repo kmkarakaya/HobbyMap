@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
+import './AuthPage.css';
 
 const LoginPage = () => {
   const { signIn, signInWithGoogle, user } = useFirebase();
@@ -44,24 +45,46 @@ const LoginPage = () => {
 
   return (
     <div className="auth-page">
-      <h2>Sign in</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div>
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <div>
-          <button type="submit" disabled={loading}>{loading ? 'Signing in...' : 'Sign in'}</button>
-        </div>
-      </form>
+      <div className="auth-container">
+        <h2>Sign In</h2>
+        {error && <div className="error-message">{error}</div>}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input 
+              id="email"
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              placeholder="Enter your email"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input 
+              id="password"
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              placeholder="Enter your password"
+            />
+          </div>
+          <button type="submit" className="primary-button" disabled={loading}>
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
 
-      <div style={{ marginTop: 12 }}>
-        <button onClick={handleGoogleSignIn} disabled={loading}>Sign in with Google</button>
+        <div className="auth-divider">or</div>
+
+        <button onClick={handleGoogleSignIn} className="google-button" disabled={loading}>
+          Sign in with Google
+        </button>
+
+        <div className="auth-footer">
+          Don't have an account? <a href="/signup">Sign up</a>
+        </div>
       </div>
     </div>
   );
