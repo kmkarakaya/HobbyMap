@@ -17,7 +17,7 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await signUp(email, password, displayName);
-      navigate('/dives');
+      navigate('/entries');
     } catch (err) {
       setError(err.message || 'Failed to sign up');
     } finally {
@@ -30,7 +30,7 @@ const SignupPage = () => {
     setLoading(true);
     try {
       await signInWithGoogle();
-      navigate('/dives');
+      navigate('/entries');
     } catch (err) {
       setError(err.message || 'Google sign-in failed');
     } finally {
@@ -40,7 +40,7 @@ const SignupPage = () => {
 
   // If already signed in, redirect away from signup page
   React.useEffect(() => {
-    if (user) navigate('/dives');
+    if (user) navigate('/entries');
   }, [user, navigate]);
 
   return (
