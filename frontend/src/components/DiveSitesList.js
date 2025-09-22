@@ -8,7 +8,7 @@ const DiveSitesList = () => {
     useFirebase();
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this dive site?")) {
+    if (window.confirm("Are you sure you want to delete this entry?")) {
       try {
         await deleteDiveSite(id);
         // The FirebaseContext already handles updating the diveSites state
