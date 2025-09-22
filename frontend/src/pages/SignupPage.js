@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
+import './AuthPage.css';
 
 const SignupPage = () => {
   const { signUp, signInWithGoogle, user } = useFirebase();
@@ -45,28 +46,56 @@ const SignupPage = () => {
 
   return (
     <div className="auth-page">
-      <h2>Sign up</h2>
-      {error && <div className="error">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Display name</label>
-          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
-        </div>
-        <div>
-          <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </div>
-        <div>
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-        </div>
-        <div>
-          <button type="submit" disabled={loading}>{loading ? 'Signing up...' : 'Sign up'}</button>
-        </div>
-      </form>
+      <div className="auth-container">
+        <h2>Sign Up</h2>
+        {error && <div className="error-message">{error}</div>}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="displayName">Display Name</label>
+            <input 
+              id="displayName"
+              type="text"
+              value={displayName} 
+              onChange={(e) => setDisplayName(e.target.value)} 
+              placeholder="Enter your display name"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input 
+              id="email"
+              type="email" 
+              value={email} 
+              onChange={(e) => setEmail(e.target.value)} 
+              required 
+              placeholder="Enter your email"
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input 
+              id="password"
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+              placeholder="Enter your password"
+            />
+          </div>
+          <button type="submit" className="primary-button" disabled={loading}>
+            {loading ? 'Signing up...' : 'Sign Up'}
+          </button>
+        </form>
 
-      <div style={{ marginTop: 12 }}>
-        <button onClick={handleGoogleSignUp} disabled={loading}>Sign up with Google</button>
+        <div className="auth-divider">or</div>
+
+        <button onClick={handleGoogleSignUp} className="google-button" disabled={loading}>
+          Sign up with Google
+        </button>
+
+        <div className="auth-footer">
+          Already have an account? <a href="/login">Sign in</a>
+        </div>
       </div>
     </div>
   );
