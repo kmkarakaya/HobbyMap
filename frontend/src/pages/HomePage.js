@@ -1,12 +1,8 @@
 import React from "react";
-import DiveMap from "../components/Map";
+import LandingPage from "../components/LandingPage";
 
 const HomePage = () => {
-  return (
-    <div>
-      <DiveMap />
-    </div>
-  );
+  return <LandingPage />;
 };
 
 export default HomePage;
