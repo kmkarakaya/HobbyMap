@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { useFirebase } from "../contexts/FirebaseContext";
@@ -54,8 +54,72 @@ const createColoredIcon = (color) => {
 const DiveMap = () => {
   const { diveSites, loading, error, retryLoadDiveSites } = useFirebase();
 
+  // Animation state
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [visibleSiteCount, setVisibleSiteCount] = useState(0);
+  const [animationSpeed, setAnimationSpeed] = useState(1000); // milliseconds between marker appearances
+  const [showAllSites, setShowAllSites] = useState(true);
+
+  // Sort dive sites by date (oldest first) for chronological animation
+  const sortedDiveSites = React.useMemo(() => {
+    if (!diveSites) return [];
+    return [...diveSites]
+      .filter(site => site.latitude && site.longitude) // Only sites with valid coordinates
+      .sort((a, b) => {
+        // Handle different date formats
+        const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+        const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+        
+        // Invalid dates go to the end
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        
+        return dateA.getTime() - dateB.getTime(); // Ascending order (oldest first)
+      });
+  }, [diveSites]);
+
+  // Sites to display (either all or limited by animation)
+  const sitesToDisplay = showAllSites ? sortedDiveSites : sortedDiveSites.slice(0, visibleSiteCount);
+
   // Default center position
   const defaultPosition = [20, 0]; // Center of the world map
+
+  // Animation control functions
+  const startAnimation = () => {
+    if (sortedDiveSites.length === 0) return;
+    
+    setIsAnimating(true);
+    setShowAllSites(false);
+    setVisibleSiteCount(0);
+    
+    // Animate markers one by one
+    let currentIndex = 0;
+    const animateNext = () => {
+      if (currentIndex < sortedDiveSites.length) {
+        setVisibleSiteCount(currentIndex + 1);
+        currentIndex++;
+        setTimeout(animateNext, animationSpeed);
+      } else {
+        setIsAnimating(false);
+      }
+    };
+    
+    // Start the animation after a brief delay
+    setTimeout(animateNext, 500);
+  };
+
+  const stopAnimation = () => {
+    setIsAnimating(false);
+    setShowAllSites(true);
+    setVisibleSiteCount(0);
+  };
+
+  const resetAnimation = () => {
+    setIsAnimating(false);
+    setShowAllSites(false);
+    setVisibleSiteCount(0);
+  };
 
   if (loading) return <div className="loading">Loading map...</div>;
 
@@ -85,6 +149,59 @@ const DiveMap = () => {
 
   return (
     <div className="map-container">
+      {/* Animation Controls */}
+      <div className="animation-controls">
+        <div className="control-group">
+          <button 
+            onClick={startAnimation} 
+            disabled={isAnimating || sortedDiveSites.length === 0}
+            className="control-button primary"
+          >
+            {isAnimating ? '▶ Playing...' : '▶ Play Animation'}
+          </button>
+          <button 
+            onClick={stopAnimation} 
+            disabled={!isAnimating && showAllSites}
+            className="control-button"
+          >
+            ⏹ Show All
+          </button>
+          <button 
+            onClick={resetAnimation} 
+            disabled={isAnimating}
+            className="control-button"
+          >
+            ⏪ Reset
+          </button>
+        </div>
+        <div className="control-group">
+          <label htmlFor="speed-slider">Animation Speed:</label>
+          <input
+            id="speed-slider"
+            type="range"
+            min="200"
+            max="3000"
+            step="200"
+            value={animationSpeed}
+            onChange={(e) => setAnimationSpeed(Number(e.target.value))}
+            disabled={isAnimating}
+            className="speed-slider"
+          />
+          <span className="speed-label">{(animationSpeed / 1000).toFixed(1)}s</span>
+        </div>
+        <div className="status-info">
+          {isAnimating && (
+            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} dive sites</span>
+          )}
+          {!showAllSites && !isAnimating && (
+            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} dive sites</span>
+          )}
+          {showAllSites && sortedDiveSites.length > 0 && (
+            <span>Showing all {sortedDiveSites.length} dive sites</span>
+          )}
+        </div>
+      </div>
+
       <MapContainer
         center={defaultPosition}
         zoom={2}
@@ -96,39 +213,37 @@ const DiveMap = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
-        {diveSites.map((site) =>
-          site.latitude && site.longitude ? (
-            <Marker
-              key={site.id}
-              position={[site.latitude, site.longitude]}
-              icon={createColoredIcon(hashColor(site.id))}
-            >
-              <Popup>
-                <div className="popup-content">
-                  <h3>{site.title || site.siteName}</h3>
-                  {site.hobby && <p><strong>Hobby:</strong> {site.hobby}</p>}
+        {sitesToDisplay.map((site) => (
+          <Marker
+            key={site.id}
+            position={[site.latitude, site.longitude]}
+            icon={createColoredIcon(hashColor(site.id))}
+          >
+            <Popup>
+              <div className="popup-content">
+                <h3>{site.title || site.siteName}</h3>
+                {site.hobby && <p><strong>Hobby:</strong> {site.hobby}</p>}
+                <p>
+                  <strong>Location:</strong>{" "}
+                  {site.place || site.country
+                    ? `${site.place || ""}${site.place && site.country ? ", " : ""}${site.country || ""}`
+                    : ""}
+                </p>
+                <p>
+                  <strong>Date:</strong>{" "}
+                  {site.date instanceof Date
+                    ? site.date.toLocaleDateString()
+                    : "Unknown date"}
+                </p>
+                {site.notes && (
                   <p>
-                    <strong>Location:</strong>{" "}
-                    {site.place || site.country
-                      ? `${site.place || ""}${site.place && site.country ? ", " : ""}${site.country || ""}`
-                      : ""}
+                    <strong>Notes:</strong> {site.notes}
                   </p>
-                  <p>
-                    <strong>Date:</strong>{" "}
-                    {site.date instanceof Date
-                      ? site.date.toLocaleDateString()
-                      : "Unknown date"}
-                  </p>
-                  {site.notes && (
-                    <p>
-                      <strong>Notes:</strong> {site.notes}
-                    </p>
-                  )}
-                </div>
-              </Popup>
-            </Marker>
-          ) : null
-        )}
+                )}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );
