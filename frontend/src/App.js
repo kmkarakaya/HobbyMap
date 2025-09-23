@@ -20,7 +20,14 @@ function App() {
           <main className="container">
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/entries" element={<DiveSitesPage />} />
+              <Route 
+                path="/entries" 
+                element={
+                  <ProtectedRoute>
+                    <DiveSitesPage />
+                  </ProtectedRoute>
+                } 
+              />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route
