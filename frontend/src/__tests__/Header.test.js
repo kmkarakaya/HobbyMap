@@ -104,4 +104,16 @@ describe('Header Authentication Behavior', () => {
     expect(screen.getByText('Sign up')).toBeInTheDocument();
     expect(screen.queryByText('Sign out')).not.toBeInTheDocument();
   });
+
+  test('renders About link in navigation', () => {
+    // Mock unauthenticated state (About should be accessible to all users)
+    useFirebase.mockReturnValue({
+      user: null,
+      signOut: jest.fn(),
+    });
+
+    renderWithRouter(<Header />);
+
+    expect(screen.getByRole('link', { name: 'About' })).toBeInTheDocument();
+  });
 });

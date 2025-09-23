@@ -1,0 +1,75 @@
+/* About Page Styles */
+.about-page {
+  min-height: calc(100vh - 70px);
+  background: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.about-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.about-page h1 {
+  color: #1a73e8;
+  text-align: center;
+  margin-bottom: 2rem;
+  font-size: 2.5rem;
+}
+
+.about-content {
+  line-height: 1.6;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.about-content p {
+  margin-bottom: 1.5rem;
+}
+
+.developer-info {
+  background: #f0f8ff;
+  padding: 1.5rem;
+  border-radius: 6px;
+  border-left: 4px solid #1a73e8;
+  margin-top: 2rem;
+}
+
+.developer-info h3 {
+  color: #1a73e8;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.developer-info p {
+  margin-bottom: 0.5rem;
+}
+
+.website-link {
+  color: #1a73e8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.website-link:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .about-container {
+    margin: 0 1rem;
+    padding: 1.5rem;
+  }
+  
+  .about-page h1 {
+    font-size: 2rem;
+  }
+  
+  .about-content {
+    font-size: 1rem;
+  }
+}
