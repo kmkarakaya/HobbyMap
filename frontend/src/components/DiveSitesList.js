@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSitesList.css";
@@ -6,6 +6,41 @@ import "./DiveSitesList.css";
 const DiveSitesList = () => {
   const { diveSites, loading, error, deleteDiveSite, retryLoadDiveSites } =
     useFirebase();
+  
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter dive sites based on search query
+  const filteredDiveSites = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return diveSites;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return diveSites.filter((site) => {
+      // Search across all text fields
+      const searchableFields = [
+        site.title || site.siteName || "",
+        site.hobby || "",
+        site.place || "",
+        site.country || "",
+        site.notes || "",
+        // Include formatted date in search
+        site.date ? new Date(site.date).toLocaleDateString() : "",
+      ];
+
+      return searchableFields.some((field) =>
+        field.toLowerCase().includes(query)
+      );
+    });
+  }, [diveSites, searchQuery]);
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this entry?")) {
@@ -54,6 +89,22 @@ const DiveSitesList = () => {
         </Link>
       </div>
 
+      {/* Search input */}
+      <div className="search-container">
+        <input
+          type="text"
+          placeholder="Search entries by title, hobby, place, country, or notes..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="search-input"
+        />
+        {searchQuery && (
+          <button onClick={clearSearch} className="clear-search-button">
+            ✕
+          </button>
+        )}
+      </div>
+
       {diveSites.length === 0 ? (
         <div className="no-data">
           <p>No entries found. Add your first entry!</p>
@@ -61,9 +112,22 @@ const DiveSitesList = () => {
             Add Entry
           </Link>
         </div>
+      ) : filteredDiveSites.length === 0 ? (
+        <div className="no-results">
+          <p>No entries match your search for "{searchQuery}"</p>
+          <button onClick={clearSearch} className="clear-search-button">
+            Clear Search
+          </button>
+        </div>
       ) : (
-        <div className="dive-sites-grid">
-          {diveSites.map((site) => (
+        <>
+          {searchQuery && (
+            <div className="search-results-info">
+              Found {filteredDiveSites.length} of {diveSites.length} entries
+            </div>
+          )}
+          <div className="dive-sites-grid">
+            {filteredDiveSites.map((site) => (
             <div className="dive-site-card" key={site.id}>
               <h3>{site.title || site.siteName}</h3>
               {site.hobby && <div className="hobby-label">{site.hobby}</div>}
@@ -94,7 +158,8 @@ const DiveSitesList = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        </>
       )}
     </div>
   );
