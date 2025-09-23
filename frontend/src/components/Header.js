@@ -16,6 +16,20 @@ const Header = () => {
     }
   };
 
+  const handleMapClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/login');
+    }
+  };
+
+  const handleEntriesClick = (e) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/login');
+    }
+  };
+
   return (
     <header className="header">
       <div className="container">
@@ -25,10 +39,10 @@ const Header = () => {
         <nav>
           <ul>
             <li>
-              <Link to="/">Map</Link>
+              <Link to="/" onClick={handleMapClick}>Map</Link>
             </li>
             <li>
-              <Link to="/entries">My Entries</Link>
+              <Link to="/entries" onClick={handleEntriesClick}>My Entries</Link>
             </li>
             <li>
               <Link to="/add">Add Entry</Link>
