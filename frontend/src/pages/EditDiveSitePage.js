@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import DiveSiteForm from "../components/DiveSiteForm";
 
 const EditDiveSitePage = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
   const { getDiveSite, updateDiveSite, diveSites } = useFirebase();
   const [diveSite, setDiveSite] = useState(null);
   const [loadingDiveSite, setLoadingDiveSite] = useState(true);
@@ -67,7 +66,7 @@ const EditDiveSitePage = () => {
 
       console.log("Data being sent to update:", dataToUpdate);
       await updateDiveSite(id, dataToUpdate);
-      navigate("/dives");
+      // Navigation is handled by DiveSiteForm after showing success message
     } catch (err) {
       console.error("Error updating entry:", err);
       setErrorMessage("Failed to update entry. Please try again.");
