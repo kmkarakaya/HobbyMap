@@ -24,6 +24,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
   const [testResult, setTestResult] = useState(null);
 
   // Initialize form data with initialData for editing
@@ -184,7 +185,12 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
       }
 
       setLoading(false);
-      navigate("/dives");
+      setSuccess(true);
+      
+      // Show success message briefly before navigating
+      setTimeout(() => {
+        navigate("/entries");
+      }, 1500);
     } catch (err) {
       console.error("Detailed error in form submission:", err);
       setError(
@@ -200,6 +206,18 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
     <div className="dive-site-form-container">
       <h2>{isEditing ? "Edit Entry" : "Add New Entry"}</h2>
       {error && <div className="error-message">{error}</div>}
+      {success && (
+        <div className="success-message" style={{
+          padding: "10px",
+          backgroundColor: "#d4edda",
+          border: "1px solid #c3e6cb",
+          borderRadius: "4px",
+          color: "#155724",
+          marginBottom: "15px"
+        }}>
+          ✅ Entry {isEditing ? "updated" : "saved"} successfully! Redirecting to your entries...
+        </div>
+      )}
       <form onSubmit={handleFormSubmit}>
         <div className="form-group">
           <label htmlFor="title">Title*</label>
@@ -297,12 +315,14 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
           <button
             type="button"
             className="cancel-button"
-            onClick={() => navigate("/dives")}
+            onClick={() => navigate("/entries")}
           >
             Cancel
           </button>
-          <button type="submit" className="submit-button" disabled={loading}>
-            {loading
+          <button type="submit" className="submit-button" disabled={loading || success}>
+            {success 
+              ? "✅ Saved!" 
+              : loading
               ? "Saving..."
               : isEditing
               ? "Update Entry"
@@ -315,7 +335,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
               type="button"
               className="test-button"
               onClick={handleTestConnection}
-              disabled={loading}
+              disabled={loading || success}
               style={{ marginTop: "10px", backgroundColor: "#3498db" }}
             >
               Test Firebase Connection

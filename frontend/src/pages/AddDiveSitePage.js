@@ -1,10 +1,8 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import DiveSiteForm from "../components/DiveSiteForm";
 
 const AddDiveSitePage = () => {
-  const navigate = useNavigate();
   const { createDiveSite } = useFirebase();
 
   const handleSubmit = async (formData) => {
@@ -15,7 +13,7 @@ const AddDiveSitePage = () => {
     }
     // Do not include combined `location` in MVP
     await createDiveSite(payload);
-    navigate("/dives");
+    // Navigation is handled by DiveSiteForm after showing success message
   };
 
   return (
