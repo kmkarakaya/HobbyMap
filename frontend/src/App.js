@@ -7,6 +7,7 @@ import AddDiveSitePage from "./pages/AddDiveSitePage";
 import EditDiveSitePage from "./pages/EditDiveSitePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
+import AboutPage from "./pages/AboutPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { FirebaseProvider } from "./contexts/FirebaseContext";
 import "./App.css";
@@ -30,6 +31,7 @@ function App() {
               />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
+              <Route path="/about" element={<AboutPage />} />
               <Route
                 path="/add"
                 element={
