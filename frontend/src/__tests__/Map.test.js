@@ -81,8 +81,8 @@ describe('DiveMap Animation Controls', () => {
   test('shows correct status info', () => {
     render(<DiveMap />);
     
-    // Should show "Showing all X dive sites" initially
-    expect(screen.getByText(/showing all 2 dive sites/i)).toBeInTheDocument();
+    // Should show "Showing all X entries" initially
+    expect(screen.getByText(/showing all 2 entries/i)).toBeInTheDocument();
   });
 
   test('map renders with correct number of markers', () => {

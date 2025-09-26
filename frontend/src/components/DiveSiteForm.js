@@ -228,7 +228,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
             value={title}
             onChange={onChange}
             required
-            placeholder="Enter a short title for this entry (e.g. Milonga at El Ateneo)"
+            placeholder="Enter a short title for this entry (e.g. Concert at Madison Square Garden)"
           />
         </div>
 
@@ -241,7 +241,7 @@ const DiveSiteForm = ({ initialData = null, onSubmit, isEditing = false }) => {
             value={hobby}
             onChange={onChange}
             required
-            placeholder="e.g. Tango, DJ, Photography"
+            placeholder="e.g. Tango, Photography, Hiking, Music, Art"
           />
         </div>
 

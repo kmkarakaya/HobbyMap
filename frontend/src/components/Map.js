@@ -60,7 +60,7 @@ const DiveMap = () => {
   const [animationSpeed, setAnimationSpeed] = useState(1000); // milliseconds between marker appearances
   const [showAllSites, setShowAllSites] = useState(true);
 
-  // Sort dive sites by date (oldest first) for chronological animation
+  // Sort hobby entries by date (oldest first) for chronological animation
   const sortedDiveSites = React.useMemo(() => {
     if (!diveSites) return [];
     return [...diveSites]
@@ -191,13 +191,13 @@ const DiveMap = () => {
         </div>
         <div className="status-info">
           {isAnimating && (
-            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} dive sites</span>
+            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} entries</span>
           )}
           {!showAllSites && !isAnimating && (
-            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} dive sites</span>
+            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} entries</span>
           )}
           {showAllSites && sortedDiveSites.length > 0 && (
-            <span>Showing all {sortedDiveSites.length} dive sites</span>
+            <span>Showing all {sortedDiveSites.length} entries</span>
           )}
         </div>
       </div>
