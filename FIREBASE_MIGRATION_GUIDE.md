@@ -21,6 +21,7 @@ This document provides guidance for setting up the Hobby Map application using F
 
    - In Project settings, click the web icon (</>) to register an app
    - Name your app (e.g., "Scuba Diving Map Tracker")
+    - Name your app (e.g., "Hobby Map")
    - You don't need to set up Firebase Hosting yet
 
 4. **Copy Your Firebase Configuration**
@@ -52,10 +53,10 @@ This document provides guidance for setting up the Hobby Map application using F
 
 ## Firestore Data Structure
 
-The application uses the following data structure in Firestore (collection name kept as `diveSites` for compatibility, documents represent generic entries):
+The application uses the following data structure in Firestore (collection name `entries`):
 
 ```javascript
-// Collection: diveSites (represents hobby entries)
+// Collection: entries (represents hobby entries)
 {
    "id": "auto-generated-document-id",
    "title": "Saturday Milonga at El Ateneo",
@@ -78,9 +79,9 @@ For the MVP, we're using simple security rules that allow anyone to read and wri
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /diveSites/{diveSite} {
-      allow read, write: if true;
-    }
+      match /entries/{entry} {
+         allow read, write: if true;
+      }
   }
 }
 ```

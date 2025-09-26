@@ -6,7 +6,7 @@ const { geocodeLocation } = require("../utils/geocoder");
 // @access  Public
 exports.getEntries = async (req, res) => {
   try {
-  const entries = await Entry.find().sort({ date: -1 });
+    const entries = await Entry.find().sort({ date: -1 });
 
     res.status(200).json({
       success: true,
@@ -26,7 +26,7 @@ exports.getEntries = async (req, res) => {
 // @access  Public
 exports.getEntry = async (req, res) => {
   try {
-  const entry = await Entry.findById(req.params.id);
+    const entry = await Entry.findById(req.params.id);
 
     if (!entry) {
       return res.status(404).json({
@@ -62,7 +62,7 @@ exports.createEntry = async (req, res) => {
       req.body.longitude = coordinates.longitude;
     }
 
-  const created = await Entry.create(req.body);
+    const created = await Entry.create(req.body);
 
     res.status(201).json({
       success: true,
@@ -99,7 +99,7 @@ exports.updateEntry = async (req, res) => {
       req.body.longitude = coordinates.longitude;
     }
 
-  const updated = await Entry.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Entry.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
@@ -126,7 +126,7 @@ exports.updateEntry = async (req, res) => {
 // @access  Public
 exports.deleteEntry = async (req, res) => {
   try {
-  const entry = await Entry.findById(req.params.id);
+    const entry = await Entry.findById(req.params.id);
 
     if (!entry) {
       return res.status(404).json({

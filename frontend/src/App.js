@@ -2,9 +2,9 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Header from "./components/Header";
 import HomePage from "./pages/HomePage";
-import DiveSitesPage from "./pages/DiveSitesPage";
-import AddDiveSitePage from "./pages/AddDiveSitePage";
-import EditDiveSitePage from "./pages/EditDiveSitePage";
+import EntriesPage from "./pages/EntriesPage";
+import AddEntryPage from "./pages/AddEntryPage";
+import EditEntryPage from "./pages/EditEntryPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import AboutPage from "./pages/AboutPage";
@@ -25,7 +25,7 @@ function App() {
                 path="/entries" 
                 element={
                   <ProtectedRoute>
-                    <DiveSitesPage />
+                    <EntriesPage />
                   </ProtectedRoute>
                 } 
               />
@@ -36,7 +36,7 @@ function App() {
                 path="/add"
                 element={
                   <ProtectedRoute>
-                    <AddDiveSitePage />
+                    <AddEntryPage />
                   </ProtectedRoute>
                 }
               />
@@ -44,7 +44,7 @@ function App() {
                 path="/edit/:id"
                 element={
                   <ProtectedRoute>
-                    <EditDiveSitePage />
+                    <EditEntryPage />
                   </ProtectedRoute>
                 }
               />

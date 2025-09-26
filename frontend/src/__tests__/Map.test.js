@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { FirebaseProvider } from '../contexts/FirebaseContext';
-import DiveMap from '../components/Map';
+import EntryMap from '../components/Map';
 
 // Mock Leaflet to avoid issues in test environment
 jest.mock('react-leaflet', () => ({
@@ -13,7 +13,7 @@ jest.mock('react-leaflet', () => ({
 
 // Mock Firebase context with test data
 const mockFirebaseContext = {
-  diveSites: [
+  entries: [
     {
       id: '1',
       title: 'First Dive',
@@ -37,16 +37,16 @@ const mockFirebaseContext = {
   ],
   loading: false,
   error: null,
-  retryLoadDiveSites: jest.fn()
+  retryLoadEntries: jest.fn()
 };
 
 jest.mock('../contexts/FirebaseContext', () => ({
   useFirebase: () => mockFirebaseContext
 }));
 
-describe('DiveMap Animation Controls', () => {
+describe('EntryMap Animation Controls', () => {
   test('renders animation controls', () => {
-    render(<DiveMap />);
+    render(<EntryMap />);
     
     expect(screen.getByRole('button', { name: /play animation/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /show all/i })).toBeInTheDocument();
@@ -55,7 +55,7 @@ describe('DiveMap Animation Controls', () => {
   });
 
   test('animation controls have correct initial state', () => {
-    render(<DiveMap />);
+  render(<EntryMap />);
     
     const playButton = screen.getByRole('button', { name: /play animation/i });
     const showAllButton = screen.getByRole('button', { name: /show all/i });
@@ -67,7 +67,7 @@ describe('DiveMap Animation Controls', () => {
   });
 
   test('speed slider works correctly', () => {
-    render(<DiveMap />);
+  render(<EntryMap />);
     
     const speedSlider = screen.getByRole('slider', { name: /animation speed/i });
     expect(speedSlider).toHaveValue('1000'); // Default 1000ms
@@ -79,14 +79,14 @@ describe('DiveMap Animation Controls', () => {
   });
 
   test('shows correct status info', () => {
-    render(<DiveMap />);
+  render(<EntryMap />);
     
     // Should show "Showing all X entries" initially
     expect(screen.getByText(/showing all 2 entries/i)).toBeInTheDocument();
   });
 
   test('map renders with correct number of markers', () => {
-    render(<DiveMap />);
+  render(<EntryMap />);
     
     // Should render 2 markers for the test data
     const markers = screen.getAllByTestId('marker');

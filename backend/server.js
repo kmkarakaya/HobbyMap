@@ -7,7 +7,7 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 // Import routes
-const diveRoutes = require("./routes/dives");
+const entriesRoutes = require("./routes/entries");
 
 // Initialize Express
 const app = express();
@@ -18,11 +18,11 @@ app.use(express.json());
 
 // Basic route for testing
 app.get("/", (req, res) => {
-  res.json({ message: "Welcome to Scuba Diving Map Tracker API" });
+  res.json({ message: "Welcome to HobbyMap API" });
 });
 
 // Mount routes
-app.use("/api/dives", diveRoutes);
+app.use("/api/entries", entriesRoutes);
 
 // Define PORT
 const PORT = process.env.PORT || 5000;

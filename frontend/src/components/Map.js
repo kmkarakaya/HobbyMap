@@ -1,252 +1,323 @@
-import React, { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
-import { useFirebase } from "../contexts/FirebaseContext";
-import "./Map.css";
+import React, { useState, useEffect, useRef } from 'react';
+import { useFirebase } from '../contexts/FirebaseContext';
+import { useNavigate } from 'react-router-dom';
+import './Map.css';
 
-// Fix for default marker icon issue in React Leaflet
-import L from "leaflet";
-import icon from "leaflet/dist/images/marker-icon.png";
-import iconShadow from "leaflet/dist/images/marker-shadow.png";
+// Use react-leaflet for the interactive map and fall back gracefully if not
+// available in a test environment. Leaflet assets are imported so markers show.
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-let DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
+// Fix default icon paths for CRA so markers display correctly
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-// Apply DefaultIcon as the Leaflet default so React-Leaflet markers have icons when
-// using the built-in marker component. This uses the variable so ESLint doesn't
-// report it as unused and preserves the original fallback behavior.
-L.Marker.prototype.options.icon = DefaultIcon;
-
-// Instead of a global default, create deterministic per-site colored icons.
-const hashColor = (str) => {
-  if (!str) return "#3498db";
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash;
-  }
-  const h = Math.abs(hash) % 360; // hue
-  return `hsl(${h},70%,40%)`;
+const FitBounds = ({ markers, isAnimating }) => {
+  const map = useMap();
+  useEffect(() => {
+    // Don't auto-fit bounds during animation - let the animation control the zoom
+    if (!map || !markers || markers.length === 0 || isAnimating) return;
+    const latlngs = markers.map((m) => [Number(m.latitude), Number(m.longitude)]);
+    try {
+      map.fitBounds(latlngs, { padding: [40, 40] });
+    } catch (e) {
+      // ignore
+    }
+  }, [map, markers, isAnimating]);
+  return null;
 };
 
-const createColoredIcon = (color) => {
-  const svg = `
-    <svg xmlns='http://www.w3.org/2000/svg' width='25' height='41' viewBox='0 0 24 24'>
-      <path d='M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z' fill='${color}'/>
-      <circle cx='12' cy='9' r='2.5' fill='white'/>
-    </svg>`;
-
-  const svgUrl = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-
-  return L.icon({
-    iconUrl: svgUrl,
-    shadowUrl: iconShadow,
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [0, -41],
-  });
+const MapRef = ({ setMapRef }) => {
+  const map = useMap();
+  useEffect(() => {
+    setMapRef(map);
+  }, [map, setMapRef]);
+  return null;
 };
 
-const DiveMap = () => {
-  const { diveSites, loading, error, retryLoadDiveSites } = useFirebase();
-
-  // Animation state
+const EntryMap = () => {
+  const firebase = useFirebase();
+  const navigate = useNavigate();
+  const { entries = [], loading = false, error = null, retryLoadEntries = () => {} } = firebase || {};
+  const [animationSpeed, setAnimationSpeed] = useState(1000);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [visibleSiteCount, setVisibleSiteCount] = useState(0);
-  const [animationSpeed, setAnimationSpeed] = useState(1000); // milliseconds between marker appearances
-  const [showAllSites, setShowAllSites] = useState(true);
-
-  // Sort hobby entries by date (oldest first) for chronological animation
-  const sortedDiveSites = React.useMemo(() => {
-    if (!diveSites) return [];
-    return [...diveSites]
-      .filter(site => site.latitude && site.longitude) // Only sites with valid coordinates
-      .sort((a, b) => {
-        // Handle different date formats
-        const dateA = a.date instanceof Date ? a.date : new Date(a.date);
-        const dateB = b.date instanceof Date ? b.date : new Date(b.date);
-        
-        // Invalid dates go to the end
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-        
-        return dateA.getTime() - dateB.getTime(); // Ascending order (oldest first)
-      });
-  }, [diveSites]);
-
-  // Sites to display (either all or limited by animation)
-  const sitesToDisplay = showAllSites ? sortedDiveSites : sortedDiveSites.slice(0, visibleSiteCount);
-
-  // Default center position
-  const defaultPosition = [20, 0]; // Center of the world map
-
-  // Animation control functions
-  const startAnimation = () => {
-    if (sortedDiveSites.length === 0) return;
-    
-    setIsAnimating(true);
-    setShowAllSites(false);
-    setVisibleSiteCount(0);
-    
-    // Animate markers one by one
-    let currentIndex = 0;
-    const animateNext = () => {
-      if (currentIndex < sortedDiveSites.length) {
-        setVisibleSiteCount(currentIndex + 1);
-        currentIndex++;
-        setTimeout(animateNext, animationSpeed);
-      } else {
-        setIsAnimating(false);
-      }
-    };
-    
-    // Start the animation after a brief delay
-    setTimeout(animateNext, 500);
-  };
-
-  const stopAnimation = () => {
-    setIsAnimating(false);
-    setShowAllSites(true);
-    setVisibleSiteCount(0);
-  };
-
-  const resetAnimation = () => {
-    setIsAnimating(false);
-    setShowAllSites(false);
-    setVisibleSiteCount(0);
-  };
+  const [showAll, setShowAll] = useState(true);
+  const [floatingPopup, setFloatingPopup] = useState(null);
+  const leafletRef = useRef(null);
+  // Refs for marker instances so we can open/close popups programmatically
+  const markerRefs = useRef({});
+  const isPlayingRef = useRef(false);
 
   if (loading) return <div className="loading">Loading map...</div>;
 
-  // Show error with retry button
   if (error) {
     return (
       <div className="error">
         <p>{error}</p>
-        <button
-          onClick={retryLoadDiveSites}
-          className="retry-button"
-          style={{
-            marginTop: "15px",
-            padding: "8px 16px",
-            backgroundColor: "#3498db",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-        >
-          Retry Loading Map
-        </button>
+        <button onClick={retryLoadEntries} className="retry-button">Retry Loading</button>
       </div>
     );
   }
+  const markers = (entries || []).filter((e) => e && e.latitude != null && e.longitude != null);
 
+  // Helper to sleep for ms
+  const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
+
+  // Start animation: sequentially pan to each marker and open its popup
+  const startAnimation = async () => {
+    if (!leafletRef.current) return;
+    const map = leafletRef.current;
+    const list = markers.slice();
+    if (list.length === 0) return;
+    isPlayingRef.current = true;
+    setIsAnimating(true);
+    try {
+      for (let i = 0; i < list.length && isPlayingRef.current; i++) {
+        const m = list[i];
+        const lat = Number(m.latitude);
+        const lon = Number(m.longitude);
+        // Save original view so we can restore it after zooming in
+        const originalCenter = map.getCenter();
+        const originalZoom = map.getZoom();
+
+        // Zoom in first (choose a closer zoom level); ensure we don't exceed max zoom
+        const maxZoom = map.getMaxZoom ? map.getMaxZoom() : 18;
+        const targetZoom = Math.min(maxZoom || 18, Math.max(originalZoom + 3, 12));
+        const zoomInDuration = Math.max(0.8, animationSpeed / 1000);
+        
+        // Perform the zoom-in
+        try {
+          map.flyTo([lat, lon], targetZoom, { duration: zoomInDuration });
+          await sleep(Math.max(800, zoomInDuration * 1000 + 300));
+        } catch (e) {
+          try { 
+            map.setView([lat, lon], targetZoom); 
+            await sleep(500);
+          } catch (ee) {}
+        }
+
+        // prepare marker instance (may be used by fallbacks)
+        const markerInst = markerRefs.current[m.id];
+
+        // immediately show the floating popup after zoom-in completes
+        try {
+          const point = map.latLngToContainerPoint([lat, lon]);
+          const size = map.getSize();
+          const clampedX = Math.min(Math.max(point.x, 60), size.x - 60);
+          const clampedY = Math.min(Math.max(point.y, 80), size.y - 80);
+          setFloatingPopup({ entry: m, x: clampedX, y: clampedY });
+        } catch (e) {
+          // fallback to marker popup
+          try {
+            if (markerInst && markerInst.openPopup) markerInst.openPopup();
+            else if (markerInst && markerInst.leafletElement && typeof markerInst.leafletElement.openPopup === 'function') markerInst.leafletElement.openPopup();
+          } catch (ee) {}
+        }
+
+        // animate the marker DOM element (add a CSS class that bounces)
+        try {
+          let domWrapper = null;
+
+          // primary: our DivIcon renders an element with data-entry-id
+          try {
+            domWrapper = document.querySelector(`[data-entry-id="${m.id}"]`);
+            if (domWrapper && domWrapper.classList) {
+              domWrapper.classList.add('hm-animate');
+              setTimeout(() => {
+                domWrapper.classList.remove('hm-animate');
+              }, 1500); // longer duration to match the CSS animation
+            }
+          } catch (e) {
+            domWrapper = null;
+          }
+
+          // fallback: try previous approaches to get marker DOM
+          if (!domWrapper && markerInst) {
+            let domEl = null;
+            if (typeof markerInst.getElement === 'function') domEl = markerInst.getElement();
+            else if (markerInst._icon) domEl = markerInst._icon;
+            else if (markerInst.leafletElement && markerInst.leafletElement._icon) domEl = markerInst.leafletElement._icon;
+
+            if (domEl) {
+              // try to find the wrapper inside the domEl
+              const inside = domEl.querySelector && domEl.querySelector('[data-entry-id]');
+              const target = inside || domEl;
+              if (target && target.classList) {
+                target.classList.add('hm-animate');
+                setTimeout(() => target.classList.remove('hm-animate'), 1500); // longer duration
+              }
+            }
+          }
+        } catch (e) {
+          // ignore animation failures
+        }
+
+        // keep the popup open for the required minimum 0.5s
+        const dwellDuration = Math.max(500, animationSpeed);
+        await sleep(dwellDuration);
+
+        // After preview, zoom back out to the original view so the sequence is: zoom in -> show card -> zoom out
+        try {
+          const restoreDuration = Math.max(0.6, (animationSpeed / 1000) * 0.8);
+          try {
+            map.flyTo(originalCenter, originalZoom, { duration: restoreDuration });
+          } catch (e) {
+            try { map.setView(originalCenter, originalZoom); } catch (ee) {}
+          }
+          await sleep(Math.max(300, restoreDuration * 1000 + 150));
+        } catch (e) {}
+
+        // hide floating popup after zooming back out
+        setFloatingPopup(null);
+      }
+    } finally {
+      isPlayingRef.current = false;
+      setIsAnimating(false);
+      // at the end, show all markers again
+      try { setShowAll(true); } catch (e) {}
+      // ensure bounds contains all
+      try { if (leafletRef.current && markers.length) leafletRef.current.fitBounds(markers.map((m) => [Number(m.latitude), Number(m.longitude)]), { padding: [40,40] }); } catch (e) {}
+    }
+  };
+
+  // Stop animation
+  const stopAnimation = () => {
+    isPlayingRef.current = false;
+    setIsAnimating(false);
+  };
+
+  // Show all / Reset actions
+  const showAllAction = () => {
+    if (!leafletRef.current || markers.length === 0) return;
+    try { leafletRef.current.fitBounds(markers.map((m) => [Number(m.latitude), Number(m.longitude)]), { padding: [40,40] }); } catch (e) {}
+    setShowAll(true);
+    stopAnimation();
+  };
+
+  const resetAction = () => {
+    showAllAction();
+  };
+
+  // wire control callbacks in rendered buttons
+  
   return (
-    <div className="map-container">
-      {/* Animation Controls */}
-      <div className="animation-controls">
-        <div className="control-group">
-          <button 
-            onClick={startAnimation} 
-            disabled={isAnimating || sortedDiveSites.length === 0}
-            className="control-button primary"
-          >
-            {isAnimating ? '▶ Playing...' : '▶ Play Animation'}
-          </button>
-          <button 
-            onClick={stopAnimation} 
-            disabled={!isAnimating && showAllSites}
-            className="control-button"
-          >
-            ⏹ Show All
-          </button>
-          <button 
-            onClick={resetAnimation} 
-            disabled={isAnimating}
-            className="control-button"
-          >
-            ⏪ Reset
-          </button>
-        </div>
-        <div className="control-group">
-          <label htmlFor="speed-slider">Animation Speed:</label>
-          <input
-            id="speed-slider"
-            type="range"
-            min="200"
-            max="3000"
-            step="200"
-            value={animationSpeed}
-            onChange={(e) => setAnimationSpeed(Number(e.target.value))}
-            disabled={isAnimating}
-            className="speed-slider"
-          />
-          <span className="speed-label">{(animationSpeed / 1000).toFixed(1)}s</span>
-        </div>
-        <div className="status-info">
-          {isAnimating && (
-            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} entries</span>
-          )}
-          {!showAllSites && !isAnimating && (
-            <span>Showing {visibleSiteCount} of {sortedDiveSites.length} entries</span>
-          )}
-          {showAllSites && sortedDiveSites.length > 0 && (
-            <span>Showing all {sortedDiveSites.length} entries</span>
-          )}
+    <div className="map-wrapper">
+      <div className="map-overlay">
+        <div className="map-controls">
+          <div className="controls-row">
+            <button aria-label="Play animation" className="primary" disabled={isAnimating} onClick={() => { 
+              if (!isAnimating) { 
+                setShowAll(false); 
+                startAnimation(); 
+              }
+            }}>
+              Play Animation
+            </button>
+
+            <button aria-label="Show all" disabled={showAll || markers.length === 0} onClick={showAllAction}>
+              Show All
+            </button>
+
+            <button aria-label="Reset" onClick={resetAction}>
+              Reset
+            </button>
+          </div>
+
+          <div className="controls-row speed-row">
+            <label htmlFor="speed">Animation Speed:</label>
+            <input
+              aria-label="Animation speed"
+              id="speed"
+              type="range"
+              min="100"
+              max="5000"
+              value={animationSpeed}
+              onChange={(e) => setAnimationSpeed(Number(e.target.value))}
+            />
+            <span aria-live="polite" className="speed-value">{(animationSpeed / 1000).toFixed(1)}s</span>
+          </div>
+
+          <div className="controls-footer">{`Showing all ${markers.length} entries`}</div>
         </div>
       </div>
 
-      <MapContainer
-        center={defaultPosition}
-        zoom={2}
-        scrollWheelZoom={true}
-        className="map"
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+  <div data-testid="map-container" className="map-container" role="img" aria-label={`Map showing ${markers.length} markers`}>
+        {/* Use a Leaflet MapContainer for real tiles and markers */}
+        <MapContainer
+          center={[20, 0]}
+          zoom={2}
+          scrollWheelZoom={true}
+          style={{ height: '100%', width: '100%' }}
+        >
+          <MapRef setMapRef={(map) => { leafletRef.current = map; }} />
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
 
-        {sitesToDisplay.map((site) => (
-          <Marker
-            key={site.id}
-            position={[site.latitude, site.longitude]}
-            icon={createColoredIcon(hashColor(site.id))}
-          >
-            <Popup>
+          {markers.map((m) => {
+            // create a div icon so the DOM structure is under our control and
+            // we can reliably query it for animations
+            const icon = L.divIcon({
+              className: 'hm-div-icon',
+              html: `<div class="hm-pin-wrapper" data-entry-id="${m.id}"><span class="hm-pin"></span></div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 24],
+            });
+
+            return (
+              <Marker
+                key={m.id}
+                position={[Number(m.latitude), Number(m.longitude)]}
+                icon={icon}
+                ref={(el) => { if (el) markerRefs.current[m.id] = el; }}
+                eventHandlers={{
+                  click: (e) => {
+                    try {
+                      const p = leafletRef.current.latLngToContainerPoint(e.latlng);
+                      setFloatingPopup({ entry: m, x: p.x, y: p.y });
+                    } catch (err) {
+                      // ignore
+                    }
+                  }
+                }}
+              />
+            );
+          })}
+
+          {floatingPopup && (
+            <div className="hm-floating-popup" style={{ left: floatingPopup.x, top: floatingPopup.y }}>
               <div className="popup-content">
-                <h3>{site.title || site.siteName}</h3>
-                {site.hobby && <p><strong>Hobby:</strong> {site.hobby}</p>}
-                <p>
-                  <strong>Location:</strong>{" "}
-                  {site.place || site.country
-                    ? `${site.place || ""}${site.place && site.country ? ", " : ""}${site.country || ""}`
-                    : ""}
-                </p>
-                <p>
-                  <strong>Date:</strong>{" "}
-                  {site.date instanceof Date
-                    ? site.date.toLocaleDateString()
-                    : "Unknown date"}
-                </p>
-                {site.notes && (
-                  <p>
-                    <strong>Notes:</strong> {site.notes}
+                <h3>{floatingPopup.entry.title || 'Untitled Entry'}</h3>
+                <p><strong>Activity:</strong> {floatingPopup.entry.hobby || 'Not specified'}</p>
+                {(floatingPopup.entry.place || floatingPopup.entry.country) && (
+                  <p><strong>Location:</strong> {[floatingPopup.entry.place, floatingPopup.entry.country].filter(Boolean).join(', ')}</p>
+                )}
+                {floatingPopup.entry.date && <p><strong>Date:</strong> {new Date(floatingPopup.entry.date).toLocaleDateString()}</p>}
+                {(floatingPopup.entry.notes || floatingPopup.entry.note) && (
+                  <p className="popup-notes"><strong>Notes:</strong>{' '}
+                    {(floatingPopup.entry.notes || floatingPopup.entry.note).split('\n').map((line, idx, arr) => (
+                      <span key={idx}>{line}{idx < arr.length - 1 ? <br /> : null}</span>
+                    ))}
                   </p>
                 )}
+                <div className="popup-actions">
+                  <button className="edit-btn" onClick={() => navigate(`/edit/${floatingPopup.entry.id}`)}>Edit</button>
+                </div>
               </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+            </div>
+          )}
+
+          <FitBounds markers={markers} isAnimating={isAnimating} />
+        </MapContainer>
+      </div>
     </div>
   );
 };
 
-export default DiveMap;
+export default EntryMap;

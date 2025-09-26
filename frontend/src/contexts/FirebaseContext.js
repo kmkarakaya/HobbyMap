@@ -11,11 +11,11 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import {
-  getDiveSites as fetchDiveSites,
-  getDiveSite as fetchDiveSite,
-  createDiveSite as addDiveSite,
-  updateDiveSite as editDiveSite,
-  deleteDiveSite as removeDiveSite,
+  getEntries as fetchEntries,
+  getEntry as fetchEntry,
+  createEntry as addEntry,
+  updateEntry as editEntry,
+  deleteEntry as removeEntry,
 } from "../firebase/diveService";
 
 // Debug log to verify the db being used
@@ -34,7 +34,7 @@ export const useFirebase = () => {
 };
 
 export const FirebaseProvider = ({ children }) => {
-  const [diveSites, setDiveSites] = useState([]);
+  const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   // Track whether we've received the initial auth state from Firebase
   // This prevents a flash of unauthenticated UI while the SDK initializes
@@ -42,17 +42,19 @@ export const FirebaseProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
 
-  // Function to manually retry loading dive sites
-  const retryLoadDiveSites = async () => {
+  // Function to manually retry loading entries
+  const retryLoadEntries = async () => {
     try {
       console.log("FirebaseContext: Manually retrying loading entries...");
       setLoading(true);
       setError(null);
+      if (!user || !user.uid) {
+        throw new Error('Must be signed in to load entries');
+      }
+      const sites = await fetchEntries(user.uid);
 
-      const sites = await fetchDiveSites();
-
-      console.log("FirebaseContext: Retry successful, entries loaded:", sites);
-      setDiveSites(sites);
+        console.log("FirebaseContext: Retry successful, entries loaded:", sites);
+      setEntries(sites);
       setError(null);
     } catch (err) {
       console.error("FirebaseContext: Retry failed:", err);
@@ -62,7 +64,7 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
-  // Subscribe to auth state and load user's dive sites
+  // Subscribe to auth state and load user's entries
   useEffect(() => {
     let isMounted = true;
     // Use a ref-like flag to ensure we only flip authInitializing once without adding it as a dependency
@@ -77,22 +79,22 @@ export const FirebaseProvider = ({ children }) => {
       }
 
       setUser(u);
-      if (u) {
-        // User logged in - load user's dive sites
+        if (u) {
+        // User logged in - load user's entries
         try {
           setLoading(true);
-          const sites = await fetchDiveSites(u.uid);
-          setDiveSites(sites);
+          const sites = await fetchEntries(u.uid);
+          setEntries(sites);
           setError(null);
         } catch (err) {
-          console.error("FirebaseContext: Error loading user's dive sites:", err);
-          setError("Failed to load dive sites. Please try again.");
+          console.error("FirebaseContext: Error loading user's entries:", err);
+          setError("Failed to load entries. Please try again.");
         } finally {
           setLoading(false);
         }
-      } else {
-        // User logged out - clear dive sites
-        setDiveSites([]);
+        } else {
+        // User logged out - clear entries
+        setEntries([]);
         setLoading(false);
         setError(null);
       }
@@ -105,13 +107,13 @@ export const FirebaseProvider = ({ children }) => {
   }, []);
 
   // Get a single dive site by ID
-  const getDiveSite = async (id) => {
+  const getEntry = async (id) => {
     try {
       setLoading(true);
-      const site = await fetchDiveSite(id);
+      const site = await fetchEntry(id);
       return site;
     } catch (err) {
-      setError("Failed to load dive site details.");
+      setError("Failed to load entry details.");
       throw err;
     } finally {
       setLoading(false);
@@ -119,29 +121,29 @@ export const FirebaseProvider = ({ children }) => {
   };
 
   // Create a new dive site
-  const createDiveSite = async (diveSiteData) => {
+  const createEntry = async (entryData) => {
     try {
       setLoading(true);
       // Ensure a user is signed in for MVP (require userId)
       if (!user || !user.uid) throw new Error('Must be signed in to create a dive site');
-      const payload = { ...diveSiteData, userId: user.uid };
-      const newSite = await addDiveSite(payload);
+      const payload = { ...entryData, userId: user.uid };
+      const newSite = await addEntry(payload);
 
       // After creating the site, re-fetch the authoritative list from
       // Firestore to ensure server-side fields (timestamps) and indexes are
       // applied and to avoid visibility issues on subsequent sign-in.
       try {
-        const refreshed = await fetchDiveSites(user.uid);
-        setDiveSites(refreshed);
+        const refreshed = await fetchEntries(user.uid);
+        setEntries(refreshed);
       } catch (refreshErr) {
         // If refresh fails for any reason, fall back to optimistic update
         console.warn("Failed to refresh dive sites after create:", refreshErr);
-        setDiveSites((prevSites) => [newSite, ...prevSites]);
+        setEntries((prevSites) => [newSite, ...prevSites]);
       }
 
       return newSite;
     } catch (err) {
-      setError("Failed to create dive site. Please try again.");
+      setError("Failed to create entry. Please try again.");
       throw err;
     } finally {
       setLoading(false);
@@ -149,16 +151,16 @@ export const FirebaseProvider = ({ children }) => {
   };
 
   // Update an existing dive site
-  const updateDiveSite = async (id, diveSiteData) => {
+  const updateEntry = async (id, entryData) => {
     try {
       setLoading(true);
       // For MVP, ensure user is present and include userId to protect writes
-      if (!user || !user.uid) throw new Error('Must be signed in to update a dive site');
-      const payload = { ...diveSiteData, userId: user.uid };
-      const updatedSite = await editDiveSite(id, payload);
+      if (!user || !user.uid) throw new Error('Must be signed in to update an entry');
+      const payload = { ...entryData, userId: user.uid };
+      const updatedSite = await editEntry(id, payload);
 
       // Update the local state with the updated dive site
-      setDiveSites((prevSites) =>
+      setEntries((prevSites) =>
         prevSites.map((site) =>
           site.id === id ? { ...site, ...updatedSite } : site
         )
@@ -166,7 +168,7 @@ export const FirebaseProvider = ({ children }) => {
 
       return updatedSite;
     } catch (err) {
-      setError("Failed to update dive site. Please try again.");
+      setError("Failed to update entry. Please try again.");
       throw err;
     } finally {
       setLoading(false);
@@ -174,15 +176,15 @@ export const FirebaseProvider = ({ children }) => {
   };
 
   // Delete a dive site
-  const deleteDiveSite = async (id) => {
+  const deleteEntry = async (id) => {
     try {
       setLoading(true);
-      await removeDiveSite(id);
+      await removeEntry(id);
 
       // Remove the dive site from local state
-      setDiveSites((prevSites) => prevSites.filter((site) => site.id !== id));
+      setEntries((prevSites) => prevSites.filter((site) => site.id !== id));
     } catch (err) {
-      setError("Failed to delete dive site. Please try again.");
+      setError("Failed to delete entry. Please try again.");
       throw err;
     } finally {
       setLoading(false);
@@ -253,7 +255,7 @@ export const FirebaseProvider = ({ children }) => {
       setLoading(true);
       await firebaseSignOut(auth);
       setUser(null);
-      setDiveSites([]);
+      setEntries([]);
     } catch (err) {
       setError(err.message || "Failed to sign out");
       throw err;
@@ -270,19 +272,19 @@ export const FirebaseProvider = ({ children }) => {
     db,
     auth,
     user,
-    diveSites,
+    entries,
     loading,
     error,
-    getDiveSite,
-    createDiveSite,
-    updateDiveSite,
-    deleteDiveSite,
+    getEntry,
+    createEntry,
+    updateEntry,
+    deleteEntry,
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
     clearError,
-    retryLoadDiveSites, // Add the retry function
+    retryLoadEntries, // Add the retry function
     // Expose a simple ready flag so consumers can avoid redirect/flash
     isAuthReady: !authInitializing,
   };

@@ -1,12 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /diveSites/{diveSite} {
-      // Allow read to everyone
-      allow read: if true;
-      
-      // Allow write to everyone for now (you might want to add authentication later)
-      allow write: if true;
+    match /entries/{entry} {
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
   }
 }

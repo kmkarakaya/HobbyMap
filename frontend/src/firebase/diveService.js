@@ -19,17 +19,19 @@ import { geocodeLocation } from "./geocoder";
 // For debugging - log the db object
 console.log("Firebase db object:", db);
 
-const COLLECTION_NAME = "diveSites"; // collection name kept for compatibility
+// For MVP, use the legacy collection name so existing users see their data
+// without requiring a migration. We can switch back to `entries` later.
+const COLLECTION_NAME = "diveSites";
 const entriesCollection = collection(db, COLLECTION_NAME);
 
 /**
- * Get all dive sites
- * @returns {Promise<Array>} List of dive sites
+ * Get all entries
+ * @returns {Promise<Array>} List of entries
  */
-export const getDiveSites = async (userId = null) => {
+export const getEntries = async (userId = null) => {
   try {
     if (!userId) {
-      throw new Error('getDiveSites requires a userId to scope results to the current user');
+      throw new Error('getEntries requires a userId to scope results to the current user');
     }
   console.log("Starting to fetch entries...");
   console.log("Collection reference:", entriesCollection);
@@ -94,7 +96,7 @@ export const getDiveSites = async (userId = null) => {
       }
     }
 
-    const entries = [];
+  const entries = [];
     querySnapshot.forEach((doc) => {
       try {
         const data = doc.data();
@@ -127,7 +129,7 @@ export const getDiveSites = async (userId = null) => {
     console.log("Successfully processed all documents, returning:", entries);
     return entries;
     } catch (error) {
-    console.error("Error getting dive sites:", error);
+  console.error("Error getting entries:", error);
     console.error("Error stack:", error.stack);
     // Helpful developer debugging: if the query returned zero results but the
     // collection has documents, surface that fact in the thrown error message.
@@ -136,11 +138,11 @@ export const getDiveSites = async (userId = null) => {
 };
 
 /**
- * Get a single dive site by ID
- * @param {string} id - Dive site document ID
- * @returns {Promise<Object>} Dive site data
+ * Get a single entry by ID
+ * @param {string} id - entry document ID
+ * @returns {Promise<Object>} entry data
  */
-export const getDiveSite = async (id) => {
+export const getEntry = async (id) => {
   try {
   const docRef = doc(db, COLLECTION_NAME, id);
     const docSnap = await getDoc(docRef);
@@ -153,48 +155,48 @@ export const getDiveSite = async (id) => {
         date: data.date?.toDate(),
       };
     } else {
-      throw new Error("Dive site not found");
+  throw new Error("Entry not found");
     }
   } catch (error) {
-    console.error("Error getting dive site:", error);
+    console.error("Error getting entry:", error);
     throw error;
   }
 };
 
 /**
  * Create a new entry
- * @param {Object} diveSiteData - entry data
+ * @param {Object} entryData - entry data
  * @returns {Promise<Object>} Created entry with ID
  */
-export const createDiveSite = async (diveSiteData) => {
+export const createEntry = async (entryData) => {
   try {
     // Require userId to be present for MVP per-user scoping
-    if (!diveSiteData || !diveSiteData.userId) {
-      throw new Error('createDiveSite requires diveSiteData.userId to be set (current user)');
+    if (!entryData || !entryData.userId) {
+      throw new Error('createEntry requires entryData.userId to be set (current user)');
     }
   // Debug: Log the data we received
-  console.log("Creating entry with data:", diveSiteData);
+  console.log("Creating entry with data:", entryData);
 
     // First geocode the location if not already geocoded
-    let newDiveSite = { ...diveSiteData };
+    let newEntry = { ...entryData };
 
     // Convert string date to Firestore timestamp or Date object
-    if (newDiveSite.date && typeof newDiveSite.date === "string") {
+    if (newEntry.date && typeof newEntry.date === "string") {
       // Convert to Date object first
-      newDiveSite.date = new Date(newDiveSite.date);
-      console.log("Converted date to Date object:", newDiveSite.date);
+      newEntry.date = new Date(newEntry.date);
+      console.log("Converted date to Date object:", newEntry.date);
     }
 
-    if (!newDiveSite.latitude || !newDiveSite.longitude) {
+    if (!newEntry.latitude || !newEntry.longitude) {
       try {
         // Use place and country for geocoding (MVP)
-        const place = newDiveSite.place || null;
-        const country = newDiveSite.country || null;
+        const place = newEntry.place || null;
+        const country = newEntry.country || null;
         console.log("Attempting to geocode with:", { place, country });
         const geoData = await geocodeLocation(place, country);
         if (geoData) {
-          newDiveSite.latitude = geoData.latitude;
-          newDiveSite.longitude = geoData.longitude;
+          newEntry.latitude = geoData.latitude;
+          newEntry.longitude = geoData.longitude;
           console.log("Geocoding successful:", geoData);
         }
       } catch (geocodeError) {
@@ -204,19 +206,19 @@ export const createDiveSite = async (diveSiteData) => {
     }
 
     // Add userId if provided (keep as-is). If none provided, log a warning.
-    if (newDiveSite.userId && typeof newDiveSite.userId === "string") {
+    if (newEntry.userId && typeof newEntry.userId === "string") {
       // keep as-is
     } else {
       console.warn(
-        "createDiveSite: No userId provided. Documents will be created without per-user scoping."
+        "createEntry: No userId provided. Documents will be created without per-user scoping."
       );
     }
 
     // Add server timestamp
-    newDiveSite.createdAt = serverTimestamp();
-    console.log("Final dive site data to save:", newDiveSite);
+    newEntry.createdAt = serverTimestamp();
+    console.log("Final entry data to save:", newEntry);
 
-  const docRef = await addDoc(entriesCollection, newDiveSite);
+  const docRef = await addDoc(entriesCollection, newEntry);
   console.log("Document written with ID:", docRef.id);
 
     // Get the newly created document to return it with the ID
@@ -229,22 +231,22 @@ export const createDiveSite = async (diveSiteData) => {
     console.log("Returning data:", returnData);
     return returnData;
   } catch (error) {
-    console.error("Error creating dive site:", error);
+    console.error("Error creating entry:", error);
     throw error;
   }
 };
 
 /**
- * Update an existing dive site
- * @param {string} id - Dive site document ID
+ * Update an existing entry
+ * @param {string} id - entry document ID
  * @param {Object} updateData - Data to update
- * @returns {Promise<Object>} Updated dive site data
+ * @returns {Promise<Object>} Updated entry data
  */
-export const updateDiveSite = async (id, updateData) => {
+export const updateEntry = async (id, updateData) => {
   try {
     // Require userId in update payload for MVP
     if (!updateData || !updateData.userId) {
-      throw new Error('updateDiveSite requires updateData.userId to be set (current user)');
+      throw new Error('updateEntry requires updateData.userId to be set (current user)');
     }
   const docRef = doc(db, COLLECTION_NAME, id);
 
@@ -336,11 +338,11 @@ export const updateDiveSite = async (id, updateData) => {
 };
 
 /**
- * Delete a dive site
- * @param {string} id - Dive site document ID
+ * Delete an entry
+ * @param {string} id - entry document ID
  * @returns {Promise<void>}
  */
-export const deleteDiveSite = async (id) => {
+export const deleteEntry = async (id) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(docRef);

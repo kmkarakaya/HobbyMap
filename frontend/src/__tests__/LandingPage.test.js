@@ -10,7 +10,7 @@ jest.mock('../contexts/FirebaseContext');
 // Mock the Map component
 jest.mock('../components/Map', () => {
   return function MockDiveMap() {
-    return <div data-testid="dive-map">Mock Map Component</div>;
+    return <div data-testid="entry-map">Mock Map Component</div>;
   };
 });
 
@@ -63,8 +63,8 @@ describe('LandingPage', () => {
 
     renderWithRouter(<LandingPage />);
 
-    // Check if map is displayed instead of landing page content
-    expect(screen.getByTestId('dive-map')).toBeInTheDocument();
+  // Check if map is displayed instead of landing page content
+  expect(screen.getByTestId('entry-map')).toBeInTheDocument();
     
     // Check that landing page content is NOT displayed
     expect(screen.queryByText('Track Your Hobby Adventures Worldwide')).not.toBeInTheDocument();

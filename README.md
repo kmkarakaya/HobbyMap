@@ -189,10 +189,10 @@ The frontend is a modern React application built with:
 ### Key Components
 
 - `LandingPage`: Welcome page with call-to-action
-- `DiveMap`: Interactive Leaflet map component
+- `EntryMap`: Interactive Leaflet map component (formerly DiveMap)
 - `Header`: Navigation with authentication state
 - `ProtectedRoute`: Route wrapper requiring authentication
-- `DiveSiteForm`: Form for adding/editing entries
+- `EntryForm`: Form for adding/editing entries (formerly DiveSiteForm)
 - `FirebaseContext`: Authentication and data management
 ## Deployment
 
@@ -264,10 +264,10 @@ The backend server provides additional functionality but is not required for the
 - Geocoding services for location data
 
 ### Backend Endpoints
-- `GET /api/dives` - Get all dive sites
-- `POST /api/dives` - Create new dive site  
-- `PUT /api/dives/:id` - Update dive site
-- `DELETE /api/dives/:id` - Delete dive site
+- `GET /api/entries` - Get all entries
+- `POST /api/entries` - Create new entry
+- `PUT /api/entries/:id` - Update entry
+- `DELETE /api/entries/:id` - Delete entry
 
 ### Backend Requirements
 - **Node.js 18+**

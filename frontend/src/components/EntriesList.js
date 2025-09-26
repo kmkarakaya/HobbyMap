@@ -3,26 +3,23 @@ import { Link } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import "./DiveSitesList.css";
 
-// Entry list component (kept under legacy filename for compatibility)
+// Unified entries list using the card/grid layout
 const EntriesList = () => {
   const { entries: entriesList, loading, error, deleteEntry, retryLoadEntries } =
     useFirebase();
 
   const handleDelete = async (id) => {
-      if (window.confirm("Are you sure you want to delete this entry?")) {
+    if (window.confirm("Are you sure you want to delete this entry?")) {
       try {
         await deleteEntry(id);
-        // The FirebaseContext already handles updating the diveSites state
       } catch (err) {
-        console.error("Error deleting dive site:", err);
-        // The error will be handled by the FirebaseContext
+        console.error("Error deleting entry:", err);
       }
     }
   };
 
   if (loading) return <div className="loading">Loading entries...</div>;
 
-  // Show error with retry button
   if (error) {
     return (
       <div className="error">
@@ -55,7 +52,7 @@ const EntriesList = () => {
         </Link>
       </div>
 
-  {entriesList.length === 0 ? (
+      {entriesList.length === 0 ? (
         <div className="no-data">
           <p>No entries found. Add your first entry!</p>
           <Link to="/add" className="add-button">
@@ -69,12 +66,12 @@ const EntriesList = () => {
               <h3>{site.title || site.siteName}</h3>
               {site.hobby && <div className="hobby-label">{site.hobby}</div>}
               <p>
-                <strong>Location:</strong>{" "}
+                <strong>Location:</strong>{' '}
                 {site.place || site.country ? `${site.place || ""}${site.place && site.country ? ", " : ""}${site.country || ""}` : ""}
               </p>
               <p>
-                <strong>Date:</strong>{" "}
-                {new Date(site.date).toLocaleDateString()}
+                <strong>Date:</strong>{' '}
+                {site.date ? new Date(site.date).toLocaleDateString() : ''}
               </p>
               {site.notes && (
                 <p>

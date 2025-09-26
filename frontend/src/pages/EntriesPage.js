@@ -1,12 +1,12 @@
 import React from "react";
 import EntriesList from "../components/EntriesList";
 
-const DiveSitesPage = () => {
+const EntriesPage = () => {
   return (
     <div>
-      <EntriesList />
+  <EntriesList />
     </div>
   );
 };
 
-export default DiveSitesPage;
+export default EntriesPage;

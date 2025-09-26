@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
-import DiveSiteForm from "../components/DiveSiteForm";
+import EntryForm from "../components/EntryForm";
 
 const EditDiveSitePage = () => {
   const { id } = useParams();
-  const { getDiveSite, updateDiveSite, diveSites } = useFirebase();
-  const [diveSite, setDiveSite] = useState(null);
-  const [loadingDiveSite, setLoadingDiveSite] = useState(true);
+  const { getEntry, updateEntry, entries } = useFirebase();
+  const [entry, setEntry] = useState(null);
+  const [loadingEntry, setLoadingEntry] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
     const fetchDiveSite = async () => {
       try {
-        const data = await getDiveSite(id);
-        setDiveSite(data);
+        const data = await getEntry(id);
+          setEntry(data);
       } catch (err) {
         console.error("Error fetching entry:", err);
         setErrorMessage("Failed to load entry. Please try again.");
@@ -24,18 +24,18 @@ const EditDiveSitePage = () => {
     };
 
     fetchDiveSite();
-  }, [id, getDiveSite, diveSites]);
+  }, [id, getEntry, entries]);
 
   const handleSubmit = async (formData) => {
     try {
       console.log("Submitting updated form data:", formData);
-  console.log("Original entry data:", diveSite);
+  console.log("Original entry data:", entry);
 
       // Check if location has been changed
       // Compare place/country to detect change
       const newPlace = formData.place || "";
       const newCountry = formData.country || "";
-      const locationChanged = (diveSite.place || "") !== newPlace || (diveSite.country || "") !== newCountry;
+  const locationChanged = (entry.place || "") !== newPlace || (entry.country || "") !== newCountry;
       console.log(
         "Location changed:",
         locationChanged,
@@ -60,12 +60,10 @@ const EditDiveSitePage = () => {
       // If location changed, explicitly set coordinates to null to force re-geocoding
       if (locationChanged) {
         console.log("Location changed, forcing geocoding");
-        // We don't need to set these to null anymore since we're checking location change
-        // in the service, but keeping the log for clarity
       }
 
       console.log("Data being sent to update:", dataToUpdate);
-      await updateDiveSite(id, dataToUpdate);
+  await updateEntry(id, dataToUpdate);
       // Navigation is handled by DiveSiteForm after showing success message
     } catch (err) {
       console.error("Error updating entry:", err);
@@ -73,16 +71,16 @@ const EditDiveSitePage = () => {
     }
   };
 
-  if (loadingDiveSite)
+      if (loadingEntry)
     return <div className="loading">Loading entry...</div>;
   if (errorMessage) return <div className="error">{errorMessage}</div>;
-  if (!diveSite) return <div className="error">Entry not found.</div>;
+  if (!entry) return <div className="error">Entry not found.</div>;
 
   return (
     <div className="edit-dive-site-page">
   <h1>Edit Entry</h1>
-      <DiveSiteForm
-        initialData={diveSite}
+      <EntryForm
+        initialData={entry}
         onSubmit={handleSubmit}
         isEditing={true}
       />
