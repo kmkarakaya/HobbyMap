@@ -1,8 +1,8 @@
-# HobbyMap - Scuba Diving Map Tracker
+# HobbyMap - Hobby Map (generic hobby location tracker)
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
-HobbyMap is a React-based web application for tracking scuba diving locations on an interactive map. The application uses Firebase for authentication and data storage, with an optional Node.js backend for additional features.
+HobbyMap is a React-based web application for tracking location-based hobby activity on an interactive map. The application uses Firebase for authentication and data storage, with an optional Node.js backend for additional features.
 
 ## Working Effectively
 
@@ -66,7 +66,7 @@ HobbyMap is a React-based web application for tracking scuba diving locations on
 ### Always Test These User Flows After Changes:
 1. **Navigation Test**: 
    - Load http://localhost:3000
-   - Click through "Map", "Dive Sites", and "Add Dive Site" navigation links
+  - Click through "Map", "Entries", and "Add Entry" navigation links
    - Verify all pages load without errors
 
 2. **Authentication Flow**:
@@ -75,9 +75,10 @@ HobbyMap is a React-based web application for tracking scuba diving locations on
    - Test that protected routes require authentication
 
 3. **Map Functionality**:
-   - Verify Leaflet map renders on main page
-   - Test zoom controls (+ and - buttons)
-   - Map tiles may show ERR_BLOCKED_BY_CLIENT in sandboxed environments (expected)
+  - Verify Leaflet map renders on main page
+  - Test zoom controls (+ and - buttons)
+  - Each marker should show the entry title, hobby, and date in the popup
+  - Map tiles may show ERR_BLOCKED_BY_CLIENT in sandboxed environments (expected)
 
 ## Firebase Configuration
 
@@ -100,7 +101,7 @@ HobbyMap is a React-based web application for tracking scuba diving locations on
 - `firebase.json` - hosting and Firestore configuration
 - `firestore.rules` - database security rules (currently open for development)
 - `firestore.indexes.json` - database indexes
-- Frontend Firebase config in `frontend/src/firebase.js`
+- Frontend Firebase config in `frontend/src/firebase.js` and client-side service helpers in `frontend/src/firebase/diveService.js`
 
 ## CI/CD Pipeline
 
@@ -135,6 +136,8 @@ firebase deploy --only hosting,firestore:rules,firestore:indexes --project hobby
 - `frontend/package.json` - Frontend dependencies and scripts
 - `backend/package.json` - Backend dependencies and scripts
 - `frontend/src/firebase.js` - Firebase configuration
+- `frontend/src/firebase/diveService.js` - Firestore CRUD and geocoding helpers for entries
+- `frontend/src/firebase/geocoder.js` - geocoding helper
 - `README.md` - Project overview and setup instructions
 - `FIREBASE_MIGRATION_GUIDE.md` - Firebase setup guide
 
@@ -162,7 +165,7 @@ npm install  # Takes ~5 seconds
 ### Build Issues:
 - Use `npm install --legacy-peer-deps` for frontend to resolve React dependency conflicts
 - Some ESLint warnings exist but don't prevent builds
-- File encoding issue in `frontend/src/services/diveService.js` (UTF-16 BOM)
+-- File encoding issue in `frontend/src/firebase/diveService.js` (UTF-16 BOM)
 
 ### Development Environment:
 - Map tiles may be blocked in sandboxed environments (shows ERR_BLOCKED_BY_CLIENT)
