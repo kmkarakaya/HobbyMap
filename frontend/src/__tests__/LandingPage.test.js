@@ -36,23 +36,27 @@ describe('LandingPage', () => {
 
     renderWithRouter(<LandingPage />);
 
-    // Check if hero content is displayed
-    expect(screen.getByText('Track Your Hobby Adventures Worldwide')).toBeInTheDocument();
-    expect(screen.getByText(/Record and visualize your hobby activities/)).toBeInTheDocument();
+    // Check if hero content is displayed with new content
+    expect(screen.getByText(/Discover & Track Your/)).toBeInTheDocument();
+    expect(screen.getByText('Scuba Diving')).toBeInTheDocument();
+    expect(screen.getByText(/Create your personal diving logbook/)).toBeInTheDocument();
     
-    // Check if CTA buttons are present
-    expect(screen.getByText('Get Started')).toBeInTheDocument();
-    expect(screen.getByText('Sign In')).toBeInTheDocument();
+    // Check if CTA buttons are present with new text
+    expect(screen.getByText('Start Your Journey')).toBeInTheDocument();
+    expect(screen.getAllByText('Sign In').length).toBeGreaterThan(0);
     
-    // Check if features section is displayed
-    expect(screen.getByText('How It Works')).toBeInTheDocument();
-    expect(screen.getByText('Record Locations')).toBeInTheDocument();
-    expect(screen.getByText('Visualize on Map')).toBeInTheDocument();
-    expect(screen.getByText('Track Progress')).toBeInTheDocument();
+    // Check if features section is displayed with new content
+    expect(screen.getByText('Everything You Need for Dive Logging')).toBeInTheDocument();
+    expect(screen.getByText('Interactive Dive Map')).toBeInTheDocument();
+    expect(screen.getByText('Digital Logbook')).toBeInTheDocument();
+    expect(screen.getByText('Dive Analytics')).toBeInTheDocument();
     
-    // Check if final CTA section is displayed
-    expect(screen.getByText('Ready to Start Mapping Your Hobbies?')).toBeInTheDocument();
-    expect(screen.getByText('Create Your Free Account')).toBeInTheDocument();
+    // Check if testimonials section is displayed
+    expect(screen.getByText('Loved by Divers Worldwide')).toBeInTheDocument();
+    
+    // Check if final CTA section is displayed with new content
+    expect(screen.getByText('Ready to Dive Into Your Digital Logbook?')).toBeInTheDocument();
+    expect(screen.getByText('Create Free Account')).toBeInTheDocument();
   });
 
   test('renders map for authenticated users', () => {
@@ -67,8 +71,8 @@ describe('LandingPage', () => {
     expect(screen.getByTestId('dive-map')).toBeInTheDocument();
     
     // Check that landing page content is NOT displayed
-    expect(screen.queryByText('Track Your Hobby Adventures Worldwide')).not.toBeInTheDocument();
-    expect(screen.queryByText('Get Started')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Discover & Track Your/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Start Your Journey')).not.toBeInTheDocument();
   });
 
   test('sign up and sign in links have correct paths', () => {
@@ -79,14 +83,12 @@ describe('LandingPage', () => {
     renderWithRouter(<LandingPage />);
 
     // Check link destinations
-    const getStartedLink = screen.getByText('Get Started').closest('a');
-    const signInLink = screen.getByText('Sign In').closest('a');
-    const createAccountLink = screen.getByText('Create Your Free Account').closest('a');
-    const alreadyHaveAccountLink = screen.getByText(/Already have an account\? Sign In/).closest('a');
+    const getStartedLink = screen.getByText('Start Your Journey').closest('a');
+    const signInLinks = screen.getAllByText('Sign In');
+    const createAccountLink = screen.getByText('Create Free Account').closest('a');
 
     expect(getStartedLink).toHaveAttribute('href', '/signup');
-    expect(signInLink).toHaveAttribute('href', '/login');
+    expect(signInLinks[0].closest('a')).toHaveAttribute('href', '/login');
     expect(createAccountLink).toHaveAttribute('href', '/signup');
-    expect(alreadyHaveAccountLink).toHaveAttribute('href', '/login');
   });
 });
