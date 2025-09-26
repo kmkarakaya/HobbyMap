@@ -25,8 +25,9 @@ const LandingPage = () => {
           <h1 className="hero-title">Track Your Hobby Adventures Worldwide</h1>
           <p className="hero-subtitle">
             Record and visualize your hobby activities on an interactive world map. 
-            Whether you're into diving, photography, hiking, or any other hobby - 
-            keep track of all the amazing places you've been!
+            Whether you're into tango dancing, photography, hiking, DJ performances, 
+            craft fairs, concerts, or any other hobby - keep track of all the amazing 
+            places you've experienced!
           </p>
           <div className="hero-actions">
             <Link to="/signup" className="cta-button primary">
@@ -55,7 +56,7 @@ const LandingPage = () => {
             <div className="feature-card">
               <div className="feature-icon">📍</div>
               <h3>Record Locations</h3>
-              <p>Add your hobby activities with details like location, date, and notes. Track diving spots, photography locations, or any hobby venue.</p>
+              <p>Add your hobby activities with details like location, date, and notes. Track venues, events, and special places related to your hobbies.</p>
             </div>
             <div className="feature-card">
               <div className="feature-icon">🗺️</div>
