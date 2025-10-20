@@ -54,7 +54,7 @@ const EntryForm = ({ initialData = null, onSubmit, isEditing = false }) => {
         notes: initialData.notes || "",
       });
     }
-  }, []);
+  }, [initialData]);
 
   const handleTestConnection = async () => {
     try {
