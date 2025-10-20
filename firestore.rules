@@ -1,21 +1,50 @@
 rules_version = '2';
 service cloud.firestore {
-  match /databases/{database}/documents {
-    // Secure entries collection: only allow authenticated users to create their own entries
-    match /entries/{entryId} {
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-      allow read: if request.auth != null && request.auth.uid == resource.data.userId;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-    }
-    
-    // Allow access to the test collection for connectivity testing
-    match /testCollection/{document} {
-      allow read, write: if true;
-    }
-    
-    // Default rule for other collections
-    match /{document=**} {
-      allow read, write: if request.time < timestamp.date(2025, 10, 19);
-    }
-  }
+	match /databases/{database}/documents {
+		// Helper functions
+		function isSignedIn() {
+			return request.auth != null;
+		}
+
+		function isAdmin() {
+			return request.auth != null && request.auth.token.admin == true;
+		}
+
+		// Entries: per-user scoped documents. Users may create documents where
+		// request.resource.data.userId matches their uid, and may read/update/delete
+		// only their own documents. Admins may override.
+		match /entries/{entryId} {
+			allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+			allow read: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+			allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
+		}
+
+		// Dive sites: these are public read (map markers) but writes should be
+		// restricted. Creating a diveSite requires an `ownerId` equal to the
+		// authenticated user's UID. Only the owner or an admin can update/delete.
+		match /diveSites/{siteId} {
+			allow read: if true;
+			allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
+			allow update, delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+		}
+
+		// Users documents: users may read and write their own user doc. Admins may
+		// read/write any user doc.
+		match /users/{userId} {
+			allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+			allow create: if isSignedIn() && request.auth.uid == userId;
+			allow update, delete: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+		}
+
+		// Keep any test-only collections locked down to admins only
+		match /testCollection/{document} {
+			allow read, write: if isAdmin();
+		}
+
+		// Deny access to everything else by default. Be explicit about denying
+		// client reads/writes to collections we haven't allowed above.
+		match /{document=**} {
+			allow read, write: if false;
+		}
+	}
 }

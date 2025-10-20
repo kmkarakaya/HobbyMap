@@ -13,7 +13,7 @@ import {
   where,
 } from "firebase/firestore";
 // Import directly from the root firebase.js file to ensure we're using the correct config
-import { db } from "../firebase";
+import { db, auth } from "../firebase";
 import { geocodeLocation } from "./geocoder";
 
 // For debugging - log the db object
@@ -170,8 +170,18 @@ export const getEntry = async (id) => {
  */
 export const createEntry = async (entryData) => {
   try {
-    // Require userId to be present for MVP per-user scoping
-    if (!entryData || !entryData.userId) {
+    // Require userId to be present for MVP per-user scoping. If caller didn't
+    // include it, try to use the currently authenticated user (best-effort).
+    if (!entryData) throw new Error('createEntry requires entryData to be provided');
+    const currentUid = auth && auth.currentUser ? auth.currentUser.uid : null;
+    if (!entryData.userId && currentUid) {
+      entryData.userId = currentUid;
+    }
+    // As a compatibility shim, also set ownerId for diveSites-backed storage
+    if (!entryData.ownerId && entryData.userId) {
+      entryData.ownerId = entryData.userId;
+    }
+    if (!entryData.userId) {
       throw new Error('createEntry requires entryData.userId to be set (current user)');
     }
   // Debug: Log the data we received
@@ -205,13 +215,9 @@ export const createEntry = async (entryData) => {
       }
     }
 
-    // Add userId if provided (keep as-is). If none provided, log a warning.
-    if (newEntry.userId && typeof newEntry.userId === "string") {
-      // keep as-is
-    } else {
-      console.warn(
-        "createEntry: No userId provided. Documents will be created without per-user scoping."
-      );
+    // Ensure ownerId is present for rules that check it
+    if (!newEntry.ownerId && newEntry.userId) {
+      newEntry.ownerId = newEntry.userId;
     }
 
     // Add server timestamp

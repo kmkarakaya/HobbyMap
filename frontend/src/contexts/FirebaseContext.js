@@ -126,7 +126,9 @@ export const FirebaseProvider = ({ children }) => {
       setLoading(true);
       // Ensure a user is signed in for MVP (require userId)
       if (!user || !user.uid) throw new Error('Must be signed in to create a dive site');
-      const payload = { ...entryData, userId: user.uid };
+      // Include both userId (per-entry owner) and ownerId for compatibility with
+      // diveSites-backed storage so Firestore rules that require ownerId pass.
+      const payload = { ...entryData, userId: user.uid, ownerId: user.uid };
       const newSite = await addEntry(payload);
 
       // After creating the site, re-fetch the authoritative list from
@@ -156,7 +158,8 @@ export const FirebaseProvider = ({ children }) => {
       setLoading(true);
       // For MVP, ensure user is present and include userId to protect writes
       if (!user || !user.uid) throw new Error('Must be signed in to update an entry');
-      const payload = { ...entryData, userId: user.uid };
+      // Include ownerId as well for write permission checks on diveSites collection
+      const payload = { ...entryData, userId: user.uid, ownerId: user.uid };
       const updatedSite = await editEntry(id, payload);
 
       // Update the local state with the updated dive site
