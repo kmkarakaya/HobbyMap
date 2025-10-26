@@ -79,4 +79,8 @@ jobs:
           DEPLOY_PROJECT=${{ secrets.FIREBASE_PROJECT_ID }}
           DEPLOY_PROJECT=${DEPLOY_PROJECT:-hobbymap-scuba-dive}
           echo "Deploying to project: $DEPLOY_PROJECT"
-          firebase deploy --only hosting,firestore:rules,firestore:indexes --project "$DEPLOY_PROJECT" --token "$FIREBASE_TOKEN"
+          # Run firebase deploy in non-interactive mode so the CI run doesn't
+          # stall on interactive prompts (for example index deletions). If you
+          # intentionally want to remove indexes, run the deploy locally with
+          # the --force flag or manage indexes through the Firebase console.
+          firebase deploy --only hosting,firestore:rules,firestore:indexes --project "$DEPLOY_PROJECT" --token "$FIREBASE_TOKEN" --non-interactive

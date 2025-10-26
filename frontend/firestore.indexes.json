@@ -1,10 +1,4 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "entries",
-      "queryScope": "COLLECTION",
-      "fields": [{ "fieldPath": "date", "order": "DESCENDING" }]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": []
 }
