@@ -1,3 +1,4 @@
+/* eslint-disable testing-library/prefer-screen-queries, testing-library/prefer-find-by */
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import { FirebaseProvider, useFirebase } from '../contexts/FirebaseContext';

@@ -19,7 +19,7 @@ const EditDiveSitePage = () => {
         console.error("Error fetching entry:", err);
         setErrorMessage("Failed to load entry. Please try again.");
       } finally {
-        setLoadingDiveSite(false);
+        setLoadingEntry(false);
       }
     };
 
@@ -35,12 +35,12 @@ const EditDiveSitePage = () => {
       // Compare place/country to detect change
       const newPlace = formData.place || "";
       const newCountry = formData.country || "";
-  const locationChanged = (entry.place || "") !== newPlace || (entry.country || "") !== newCountry;
+      const locationChanged = (entry.place || "") !== newPlace || (entry.country || "") !== newCountry;
       console.log(
         "Location changed:",
         locationChanged,
         "Original:",
-        { place: diveSite.place, country: diveSite.country },
+        { place: entry.place, country: entry.country },
         "New:",
         { place: newPlace, country: newCountry }
       );

@@ -3,7 +3,7 @@ import { useFirebase } from '../contexts/FirebaseContext';
 
 // Minimal, test-friendly map component used by the tests.
 const EntryMap = () => {
-  const firebase = useFirebase ? useFirebase() : {};
+  const firebase = useFirebase();
   const { entries = [], loading = false, error = null, retryLoadEntries = () => {} } = firebase || {};
   const [animationSpeed, setAnimationSpeed] = useState(1000);
 

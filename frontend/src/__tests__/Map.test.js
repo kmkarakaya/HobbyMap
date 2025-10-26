@@ -1,6 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { FirebaseProvider } from '../contexts/FirebaseContext';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import EntryMap from '../components/Map';
 
 // Mock Leaflet to avoid issues in test environment
@@ -9,6 +9,17 @@ jest.mock('react-leaflet', () => ({
   TileLayer: () => <div data-testid="tile-layer" />,
   Marker: ({ children }) => <div data-testid="marker">{children}</div>,
   Popup: ({ children }) => <div data-testid="popup">{children}</div>,
+  // Provide a mocked useMap hook so components that call useMap() work in tests
+  useMap: () => ({
+    fitBounds: () => {},
+    getCenter: () => ({ lat: 0, lng: 0 }),
+    getZoom: () => 2,
+    getMaxZoom: () => 18,
+    flyTo: () => {},
+    setView: () => {},
+    latLngToContainerPoint: () => ({ x: 100, y: 100 }),
+    getSize: () => ({ x: 800, y: 600 }),
+  }),
 }));
 
 // Mock Firebase context with test data
@@ -46,7 +57,11 @@ jest.mock('../contexts/FirebaseContext', () => ({
 
 describe('EntryMap Animation Controls', () => {
   test('renders animation controls', () => {
-    render(<EntryMap />);
+    render(
+      <BrowserRouter>
+        <EntryMap />
+      </BrowserRouter>
+    );
     
     expect(screen.getByRole('button', { name: /play animation/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /show all/i })).toBeInTheDocument();
@@ -55,7 +70,11 @@ describe('EntryMap Animation Controls', () => {
   });
 
   test('animation controls have correct initial state', () => {
-  render(<EntryMap />);
+  render(
+    <BrowserRouter>
+      <EntryMap />
+    </BrowserRouter>
+  );
     
     const playButton = screen.getByRole('button', { name: /play animation/i });
     const showAllButton = screen.getByRole('button', { name: /show all/i });
@@ -67,7 +86,11 @@ describe('EntryMap Animation Controls', () => {
   });
 
   test('speed slider works correctly', () => {
-  render(<EntryMap />);
+  render(
+    <BrowserRouter>
+      <EntryMap />
+    </BrowserRouter>
+  );
     
     const speedSlider = screen.getByRole('slider', { name: /animation speed/i });
     expect(speedSlider).toHaveValue('1000'); // Default 1000ms
@@ -79,14 +102,22 @@ describe('EntryMap Animation Controls', () => {
   });
 
   test('shows correct status info', () => {
-  render(<EntryMap />);
+  render(
+    <BrowserRouter>
+      <EntryMap />
+    </BrowserRouter>
+  );
     
     // Should show "Showing all X entries" initially
     expect(screen.getByText(/showing all 2 entries/i)).toBeInTheDocument();
   });
 
   test('map renders with correct number of markers', () => {
-  render(<EntryMap />);
+  render(
+    <BrowserRouter>
+      <EntryMap />
+    </BrowserRouter>
+  );
     
     // Should render 2 markers for the test data
     const markers = screen.getAllByTestId('marker');
