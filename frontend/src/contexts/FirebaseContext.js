@@ -126,6 +126,10 @@ export const FirebaseProvider = ({ children }) => {
       setLoading(true);
       // Ensure a user is signed in for MVP (require userId)
       if (!user || !user.uid) throw new Error('Must be signed in to create a dive site');
+      // Debug: log current auth user and incoming payload to help diagnose
+      // permission issues observed in the wild.
+      console.log('createEntry: current user', user);
+      console.log('createEntry: incoming entryData', entryData);
       // Include both userId (per-entry owner) and ownerId for compatibility with
       // diveSites-backed storage so Firestore rules that require ownerId pass.
       const payload = { ...entryData, userId: user.uid, ownerId: user.uid };
@@ -182,6 +186,36 @@ export const FirebaseProvider = ({ children }) => {
   const deleteEntry = async (id) => {
     try {
       setLoading(true);
+      // Client-side ownership guard: check local state first to avoid
+      // making a delete call that will be denied by security rules.
+      const site = entries.find((e) => e.id === id);
+      const currentUid = user && user.uid ? user.uid : null;
+
+      if (site) {
+        const ownerId = site.ownerId || site.userId || null;
+        if (!currentUid || !ownerId || ownerId !== currentUid) {
+          const msg = 'You do not have permission to delete this entry.';
+          setError(msg);
+          throw new Error(msg);
+        }
+      } else {
+        // If we don't have the document locally, attempt to fetch it to
+        // determine ownership before deleting.
+        try {
+          const fetched = await fetchEntry(id);
+          const ownerId = fetched.ownerId || fetched.userId || null;
+          if (!currentUid || !ownerId || ownerId !== currentUid) {
+            const msg = 'You do not have permission to delete this entry.';
+            setError(msg);
+            throw new Error(msg);
+          }
+        } catch (fetchErr) {
+          // If fetching fails, continue and let the delete call surface the
+          // permission error from Firestore (we'll log it there).
+          console.warn('deleteEntry: could not fetch entry for ownership check:', fetchErr);
+        }
+      }
+
       await removeEntry(id);
 
       // Remove the dive site from local state

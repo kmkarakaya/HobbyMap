@@ -31,7 +31,12 @@ service cloud.firestore {
 					request.resource.data.ownerId == request.auth.uid ||
 					request.resource.data.userId == request.auth.uid
 				);
-				allow update, delete: if isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin());
+				// Allow update/delete by either the ownerId or the legacy userId field, or by admins.
+				allow update, delete: if isSignedIn() && (
+					resource.data.ownerId == request.auth.uid ||
+					resource.data.userId == request.auth.uid ||
+					isAdmin()
+				);
 			}
 
 		// Users documents: users may read and write their own user doc. Admins may

@@ -351,9 +351,37 @@ export const updateEntry = async (id, updateData) => {
 export const deleteEntry = async (id) => {
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
+    // Fetch the document first to log ownership info for debugging
+    try {
+      const snapshot = await getDoc(docRef);
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        console.log(`deleteEntry: fetched document ${id} before delete:`, data);
+      } else {
+        console.warn(`deleteEntry: document ${id} does not exist before delete`);
+      }
+    } catch (fetchErr) {
+      console.warn(`deleteEntry: failed to fetch document ${id} before delete:`, fetchErr);
+    }
+
+    // Log currently authenticated user for correlation with security rules
+    const currentUid = auth && auth.currentUser ? auth.currentUser.uid : null;
+    console.log("deleteEntry: current auth uid:", currentUid);
+
     await deleteDoc(docRef);
   } catch (error) {
     console.error("Error deleting entry:", error);
+    // Try to provide additional context when permission is denied
+    try {
+      const snapshot = await getDoc(doc(db, COLLECTION_NAME, id));
+      if (snapshot.exists()) {
+        console.error(`deleteEntry: document ${id} still exists after failed delete, data:`, snapshot.data());
+      } else {
+        console.error(`deleteEntry: document ${id} not found after failed delete`);
+      }
+    } catch (ctxErr) {
+      console.warn(`deleteEntry: unable to fetch document ${id} after failed delete:`, ctxErr);
+    }
     throw error;
   }
 };
