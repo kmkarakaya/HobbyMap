@@ -24,7 +24,7 @@ This prints a token string. Keep it secret.
 
 Notes:
 
-- The workflow deploys to project id `hobbymap-scuba-dive`. Make sure your Firebase account has permissions for that project.
+- The workflow deploys to the project id specified by the `FIREBASE_PROJECT_ID` secret (or the default set in `.firebaserc`). Make sure your Firebase account has permissions for the target project.
 - The workflow triggers on pushes and pull requests to `master` and `main`, but only when files matching the following paths change:
   - frontend/\*\*
   - firebase.json

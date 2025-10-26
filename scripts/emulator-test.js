@@ -34,8 +34,8 @@ async function main() {
     const user = await createEmulatorUser('tester@example.com', 'password');
     console.log('Emulator user created:', user.localId);
 
-    // Initialize the web client to point at emulators
-    const firebaseConfig = { projectId: 'hobbymap-scuba-dive' };
+  // Initialize the web client to point at emulators. Use FIREBASE_PROJECT_ID when set.
+  const firebaseConfig = { projectId: process.env.FIREBASE_PROJECT_ID || 'demo-project' };
     const app = initializeApp(firebaseConfig);
     process.env.FIRESTORE_EMULATOR_HOST = FIRESTORE_EMULATOR_HOST;
     process.env.FIREBASE_AUTH_EMULATOR_HOST = 'localhost:9099';

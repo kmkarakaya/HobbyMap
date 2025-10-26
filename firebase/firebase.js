@@ -4,13 +4,14 @@ import { getFirestore } from "firebase/firestore";
 import { getFunctions } from "firebase/functions";
 
 // Your web app's Firebase configuration
+// Server-side / tooling firebase config: prefer env vars
 const firebaseConfig = {
-  apiKey: "AIzaSyBpbR2s0_iKTT-mXHFd6_t8a5-VlAG5gH8",
-  authDomain: "hobbymap-scuba-dive.firebaseapp.com",
-  projectId: "hobbymap-scuba-dive",
-  storageBucket: "hobbymap-scuba-dive.firebasestorage.app",
-  messagingSenderId: "155802485714",
-  appId: "1:155802485714:web:e1e707d384cf9a03bf7e0b",
+  apiKey: process.env.FIREBASE_API_KEY || "",
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.FIREBASE_APP_ID || "",
 };
 
 // Initialize Firebase

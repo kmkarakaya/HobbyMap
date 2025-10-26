@@ -1,8 +1,8 @@
 # Migration plan: Move hosting to project `hobbymap` (goal: https://hobbymap.web.app/)
 
 This document captures the full, step-by-step migration plan for moving the app from
-the current Firebase project (`hobbymap-scuba-dive`) to a new project whose project-id is
-`hobbymap`, so the app is reachable at https://hobbymap.web.app/.
+the current Firebase project (`<OLD_PROJECT_ID>`) to a new project whose project-id is
+`<NEW_PROJECT_ID>`, so the app is reachable at the corresponding `https://<NEW_PROJECT_ID>.web.app/`.
 
 Assumptions
 - You (the operator) have owner permissions on the Google account used for Firebase.
@@ -96,15 +96,15 @@ Firestore export/import (gcloud)
 	2. Export from old project:
 
 		 ```bash
-		 gcloud config set project hobbymap-scuba-dive
-		 gcloud firestore export gs://BUCKET_NAME/exports/hobbymap-scuba-dive
+		 gcloud config set project <OLD_PROJECT_ID>
+		 gcloud firestore export gs://BUCKET_NAME/exports/<OLD_PROJECT_ID>
 		 ```
 
 	3. Import into new project:
 
 		 ```bash
 		 gcloud config set project hobbymap
-		 gcloud firestore import gs://BUCKET_NAME/exports/hobbymap-scuba-dive/EXPORT_FOLDER
+		 gcloud firestore import gs://BUCKET_NAME/exports/<OLD_PROJECT_ID>/EXPORT_FOLDER
 		 ```
 
 Storage copy (gsutil)
@@ -144,28 +144,28 @@ Step 7 — Verify and test (smoke tests)
 Step 8 — Finalize and cleanup
 - After successful verification, you can optionally:
 	- Remove `FIREBASE_PROJECT_ID` or update it permanently in CI to `hobbymap`.
-	- Remove or archive the old project `hobbymap-scuba-dive` (careful: deleting is irreversible).
+	- Remove or archive the old project `<OLD_PROJECT_ID>` (careful: deleting is irreversible).
 	- Update docs and README to reference the new project and URLs.
 
 Rollbacks & safeguards
 - Keep the old project active (do not delete) until you are confident the new deployment is stable.
-- If something goes wrong, you can revert CI secrets to the old token/project id so CI deploys back to `hobbymap-scuba-dive`.
+	- If something goes wrong, you can revert CI secrets to the old token/project id so CI deploys back to `<OLD_PROJECT_ID>`.
 - Keep a local copy of `firebase.json`, `firestore.rules` and `firestore.indexes.json` — these are already in the repo.
 
 Checklist (copy this into your issue tracker and tick items off)
-- [ ] Create Firebase project `hobbymap` (Console/CLI).
-- [ ] Enable Firestore/Auth/Hosting/Storage on the new project.
-- [ ] Generate CI token and set `FIREBASE_TOKEN` secret.
-- [ ] Set `FIREBASE_PROJECT_ID` secret to `hobbymap`.
-- [ ] (Optional) Set `REACT_APP_FIREBASE_*` secrets with SDK config values.
-- [ ] (Optional) Export/import Firestore/Storage data if needed.
-- [ ] Local dry-run deploy to the new project.
-- [ ] Push commit to trigger GitHub Actions and validate the deploy.
-- [ ] Validate app functionality on https://hobbymap.web.app/.
+- [x] Create Firebase project `hobbymap` (Console/CLI).
+- [x] Enable Firestore/Auth/Hosting/Storage on the new project.
+- [x] Generate CI token and set `FIREBASE_TOKEN` secret.
+- [x] Set `FIREBASE_PROJECT_ID` secret to `hobbymap`.
+- [x] (Optional) Set `REACT_APP_FIREBASE_*` secrets with SDK config values.
+- [x] (Optional) Export/import Firestore/Storage data if needed. (skipped — not needed)
+- [x] Local dry-run deploy to the new project.
+- [x] Push commit to trigger GitHub Actions and validate the deploy.
+- [x] Validate app functionality on https://hobbymap.web.app/.
 - [ ] Finalize cleanup and optional deletion of the old project.
 
 Notes and tips
-- If you prefer to continue using the existing `hobbymap-scuba-dive` project and simply want a nicer URL, consider adding a custom domain (cheaper and safer). The steps above are only necessary to change the built-in web.app host.
+-- If you prefer to continue using the existing `<OLD_PROJECT_ID>` project and simply want a nicer URL, consider adding a custom domain (cheaper and safer). The steps above are only necessary to change the built-in web.app host.
 - The repo has already been updated to make the frontend config env-driven and the workflow project configurable via `FIREBASE_PROJECT_ID` secret. This means you can perform the migration by creating the new project and updating secrets — no further code changes required.
 - Keep your `FIREBASE_TOKEN` secret secure — treat it like a deploy credential.
 

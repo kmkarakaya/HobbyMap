@@ -90,9 +90,10 @@ HobbyMap is a React-based web application for tracking location-based hobby acti
   - Takes 5-10 minutes. NEVER CANCEL. Set timeout to 15+ minutes.
   - May have dependency issues in some environments
 
-- Deploy to Firebase:
+-- Deploy to Firebase:
   ```bash
-  firebase deploy --only hosting,firestore:rules,firestore:indexes --project hobbymap-scuba-dive
+  # Deploy to the project specified by your environment / .firebaserc
+  firebase deploy --only hosting,firestore:rules,firestore:indexes --project <PROJECT_ID>
   ```
   - Requires FIREBASE_TOKEN environment variable
   - Deploys frontend build and Firestore configuration
@@ -116,7 +117,8 @@ HobbyMap is a React-based web application for tracking location-based hobby acti
 cd frontend
 npm install --legacy-peer-deps
 npm run build
-firebase deploy --only hosting,firestore:rules,firestore:indexes --project hobbymap-scuba-dive
+# CI deploy uses FIREBASE_PROJECT_ID secret to select target project
+firebase deploy --only hosting,firestore:rules,firestore:indexes --project $FIREBASE_PROJECT_ID
 ```
 
 ## Project Structure
@@ -193,7 +195,7 @@ npm install  # Takes ~5 seconds
 4. Check that the application loads and displays correctly at http://localhost:3000
 
 ## Firebase Project Details:
-- Project ID: `hobbymap-scuba-dive`
+- Project ID: set in `.firebaserc` or via `FIREBASE_PROJECT_ID` secret
 - Hosting URL: configured via Firebase
 - Database: Firestore with open rules for development
 - Authentication: Firebase Auth with Google provider

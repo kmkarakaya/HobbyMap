@@ -75,9 +75,8 @@ jobs:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           # Allow overriding the project via the secret FIREBASE_PROJECT_ID.
-          # If not set, default to the existing project id so current behavior is preserved.
+          # The secret should be set to the intended Firebase project id for deploys.
           DEPLOY_PROJECT=${{ secrets.FIREBASE_PROJECT_ID }}
-          DEPLOY_PROJECT=${DEPLOY_PROJECT:-hobbymap-scuba-dive}
           echo "Deploying to project: $DEPLOY_PROJECT"
           # Run firebase deploy in non-interactive mode so the CI run doesn't
           # stall on interactive prompts (for example index deletions). If you

@@ -1,7 +1,5 @@
 {
   "projects": {
-    "default": "hobbymap-scuba-dive"
-  },
-  "targets": {},
-  "etags": {}
+    "default": "<PROJECT_ID>"
+  }
 }
