@@ -63,7 +63,37 @@ const EntryMap = () => {
       </div>
     );
   }
-  const markers = (entries || []).filter((e) => e && e.latitude != null && e.longitude != null);
+  // Build marker list flexibly: support `latitude`/`longitude`, legacy `lat`/`lng`,
+  // and nested `location` objects. Convert to Numbers and drop invalid coords.
+  const markers = (entries || [])
+    .map((e) => {
+      if (!e) return null;
+
+      // Try canonical fields first, then fall back to legacy names
+      const rawLat = e.latitude ?? e.lat ?? (e.location && (e.location.latitude ?? e.location.lat)) ?? (e.coords && (e.coords.latitude ?? e.coords.lat));
+      const rawLon = e.longitude ?? e.lng ?? (e.location && (e.location.longitude ?? e.location.lng)) ?? (e.coords && (e.coords.longitude ?? e.coords.lng));
+
+      if (rawLat === undefined || rawLat === null || rawLon === undefined || rawLon === null) return null;
+
+      const lat = Number(rawLat);
+      const lon = Number(rawLon);
+      if (Number.isNaN(lat) || Number.isNaN(lon)) return null;
+
+      // Return a normalized marker object with numeric latitude/longitude
+      return { ...e, latitude: lat, longitude: lon };
+    })
+    .filter(Boolean);
+
+  // Debugging aid: log entry vs marker counts so it's easy to diagnose why some
+  // entries are not rendered as markers when running locally.
+  React.useEffect(() => {
+    try {
+      console.log('EntryMap: entries count', (entries || []).length, 'markers count', markers.length);
+      console.log('EntryMap: markers sample', markers.map((m) => ({ id: m.id, latitude: m.latitude, longitude: m.longitude })));
+    } catch (e) {
+      // ignore logging errors
+    }
+  }, [entries, markers]);
 
   // Helper to sleep for ms
   const sleep = (ms) => new Promise((res) => setTimeout(res, ms));

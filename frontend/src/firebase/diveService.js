@@ -118,8 +118,32 @@ export const getEntries = async (userId = null) => {
           }
         }
 
-        // Add to our array with safe date handling
-        entries.push({ id: doc.id, ...data, date: processedDate });
+        // Normalize legacy coordinate fields (some old docs use `lat`/`lng`)
+        // into the canonical `latitude` / `longitude` shape used by the map.
+        const normalized = { ...data };
+        // Prefer explicit `latitude`/`longitude`, then fall back to `lat`/`lng`.
+        if ((normalized.latitude === undefined || normalized.latitude === null) && (normalized.lat !== undefined && normalized.lat !== null)) {
+          // parseFloat to ensure numeric type when stored as strings
+          const latVal = parseFloat(normalized.lat);
+          if (!Number.isNaN(latVal)) normalized.latitude = latVal;
+        }
+        if ((normalized.longitude === undefined || normalized.longitude === null) && (normalized.lng !== undefined && normalized.lng !== null)) {
+          const lngVal = parseFloat(normalized.lng);
+          if (!Number.isNaN(lngVal)) normalized.longitude = lngVal;
+        }
+
+        // Also support nested `location`/`coords` objects if present
+        if ((normalized.latitude === undefined || normalized.latitude === null) && normalized.location && (normalized.location.lat || normalized.location.latitude)) {
+          const latVal = parseFloat(normalized.location.lat || normalized.location.latitude);
+          if (!Number.isNaN(latVal)) normalized.latitude = latVal;
+        }
+        if ((normalized.longitude === undefined || normalized.longitude === null) && normalized.location && (normalized.location.lng || normalized.location.longitude)) {
+          const lngVal = parseFloat(normalized.location.lng || normalized.location.longitude);
+          if (!Number.isNaN(lngVal)) normalized.longitude = lngVal;
+        }
+
+        // Add to our array with safe date handling and normalized coords
+        entries.push({ id: doc.id, ...normalized, date: processedDate });
       } catch (docError) {
         console.error(`Error processing document ${doc.id}:`, docError);
         // Continue processing other documents
