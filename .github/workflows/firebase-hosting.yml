@@ -52,6 +52,18 @@ jobs:
 
       - name: Build frontend
         working-directory: ./frontend
+        # Inject build-time Firebase config from repository secrets so we
+        # don't have to commit API keys to the repository. If a secret is
+        # not present, the step will still run and the app will fall back
+        # to the default values embedded in `frontend/src/firebase.js`.
+        env:
+          REACT_APP_FIREBASE_API_KEY: ${{ secrets.REACT_APP_FIREBASE_API_KEY }}
+          REACT_APP_FIREBASE_AUTH_DOMAIN: ${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}
+          REACT_APP_FIREBASE_PROJECT_ID: ${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
+          REACT_APP_FIREBASE_STORAGE_BUCKET: ${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}
+          REACT_APP_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+          REACT_APP_FIREBASE_APP_ID: ${{ secrets.REACT_APP_FIREBASE_APP_ID }}
+          REACT_APP_FIREBASE_MEASUREMENT_ID: ${{ secrets.REACT_APP_FIREBASE_MEASUREMENT_ID }}
         run: npm run build
 
       - name: Install Firebase CLI (pinned)
@@ -62,4 +74,9 @@ jobs:
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
-          firebase deploy --only hosting,firestore:rules,firestore:indexes --project hobbymap-scuba-dive --token "$FIREBASE_TOKEN"
+          # Allow overriding the project via the secret FIREBASE_PROJECT_ID.
+          # If not set, default to the existing project id so current behavior is preserved.
+          DEPLOY_PROJECT=${{ secrets.FIREBASE_PROJECT_ID }}
+          DEPLOY_PROJECT=${DEPLOY_PROJECT:-hobbymap-scuba-dive}
+          echo "Deploying to project: $DEPLOY_PROJECT"
+          firebase deploy --only hosting,firestore:rules,firestore:indexes --project "$DEPLOY_PROJECT" --token "$FIREBASE_TOKEN"
