@@ -115,8 +115,8 @@ This step-by-step plan will help guide Copilot and developers through building t
   - Initialize map with world view
   - Add zoom and pan controls
   - Set up tile layer (OpenStreetMap or Mapbox)
-- Integrate dive site data:
-  - Fetch dive sites from Firestore
+-- Integrate entry data:
+  - Fetch entries from Firestore
   - Convert to map markers
   - Custom marker icons (optional)
   - Handle loading and error states
@@ -254,15 +254,15 @@ Focus on getting each core feature working before moving to the next.
   - Extract user ID
   - Add user to request object
 
-### 2.4. Dive Site API
+### 2.4. Entries API
 
-- Implement API endpoints:
+Implement API endpoints:
 
-  - `GET /api/dives` - List all dive sites for logged-in user
-  - `GET /api/dives/:id` - Get specific dive site details
-  - `POST /api/dives` - Create new dive site
-  - `PUT /api/dives/:id` - Update existing dive site
-  - `DELETE /api/dives/:id` - Delete dive site
+  - `GET /api/entries` - List all entries for logged-in user
+  - `GET /api/entries/:id` - Get specific entry details
+  - `POST /api/entries` - Create new entry
+  - `PUT /api/entries/:id` - Update existing entry
+  - `DELETE /api/entries/:id` - Delete entry
 
 - Implement geocoding service:
 

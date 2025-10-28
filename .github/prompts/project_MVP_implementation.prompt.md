@@ -1,4 +1,4 @@
-# Scuba Diving Map Tracker – MVP Implementation Plan
+# Hobby Map – MVP Implementation Plan
 
 This simplified plan focuses on the essential features needed to get a working version of the app up and running quickly, using Firebase for the database.
 
@@ -62,7 +62,7 @@ This simplified plan focuses on the essential features needed to get a working v
   - Implement functions for CRUD operations on entries
   - Implement login, logout, and sign-up flows in the frontend using Firebase Auth
   - Ensure all CRUD operations include or verify `userId` on writes and only read the authenticated user's entries
-  - Add Firestore security rules that only allow authenticated users to read/write their own dive documents (rules sample should use `request.auth.uid` checks)
+  - Add Firestore security rules that only allow authenticated users to read/write their own entry documents (rules sample should use `request.auth.uid` checks)
 
 ### 3.3. Core Components
 
@@ -104,7 +104,7 @@ This simplified plan focuses on the essential features needed to get a working v
 ## Future Enhancements (Post-MVP)
 
 - User authentication with Firebase Auth
-- Public sharing of dive sites
+- Public sharing of entries
 - Advanced filtering
 - Custom marker icons
 - Detailed analytics
@@ -117,7 +117,7 @@ This simplified plan focuses on the essential features needed to get a working v
 Start with simple, functional requests:
 
 ```
-"Copilot, help me set up Firebase for my scuba diving app."
+"Copilot, help me set up Firebase for my Hobby Map app."
 ```
 
 ```
