@@ -16,7 +16,7 @@ import {
   createEntry as addEntry,
   updateEntry as editEntry,
   deleteEntry as removeEntry,
-} from "../firebase/diveService";
+} from "../firebase/entriesService";
 
 // Debug log to verify the db being used
 console.log("FirebaseContext using db:", db);
@@ -106,7 +106,7 @@ export const FirebaseProvider = ({ children }) => {
     };
   }, []);
 
-  // Get a single dive site by ID
+  // Get a single entry by ID
   const getEntry = async (id) => {
     try {
       setLoading(true);
@@ -120,18 +120,18 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
-  // Create a new dive site
+  // Create a new entry
   const createEntry = async (entryData) => {
     try {
       setLoading(true);
       // Ensure a user is signed in for MVP (require userId)
-      if (!user || !user.uid) throw new Error('Must be signed in to create a dive site');
+  if (!user || !user.uid) throw new Error('Must be signed in to create an entry');
       // Debug: log current auth user and incoming payload to help diagnose
       // permission issues observed in the wild.
       console.log('createEntry: current user', user);
       console.log('createEntry: incoming entryData', entryData);
       // Include both userId (per-entry owner) and ownerId for compatibility with
-      // diveSites-backed storage so Firestore rules that require ownerId pass.
+  // entries-backed storage so Firestore rules that require ownerId pass.
       const payload = { ...entryData, userId: user.uid, ownerId: user.uid };
       const newSite = await addEntry(payload);
 
@@ -143,7 +143,7 @@ export const FirebaseProvider = ({ children }) => {
         setEntries(refreshed);
       } catch (refreshErr) {
         // If refresh fails for any reason, fall back to optimistic update
-        console.warn("Failed to refresh dive sites after create:", refreshErr);
+        console.warn("Failed to refresh entries after create:", refreshErr);
         setEntries((prevSites) => [newSite, ...prevSites]);
       }
 
@@ -156,17 +156,17 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
-  // Update an existing dive site
+  // Update an existing entry
   const updateEntry = async (id, entryData) => {
     try {
       setLoading(true);
       // For MVP, ensure user is present and include userId to protect writes
       if (!user || !user.uid) throw new Error('Must be signed in to update an entry');
-      // Include ownerId as well for write permission checks on diveSites collection
+  // Include ownerId as well for write permission checks on entries collection
       const payload = { ...entryData, userId: user.uid, ownerId: user.uid };
       const updatedSite = await editEntry(id, payload);
 
-      // Update the local state with the updated dive site
+      // Update the local state with the updated entry
       setEntries((prevSites) =>
         prevSites.map((site) =>
           site.id === id ? { ...site, ...updatedSite } : site
@@ -182,7 +182,7 @@ export const FirebaseProvider = ({ children }) => {
     }
   };
 
-  // Delete a dive site
+  // Delete an entry
   const deleteEntry = async (id) => {
     try {
       setLoading(true);
@@ -218,8 +218,8 @@ export const FirebaseProvider = ({ children }) => {
 
       await removeEntry(id);
 
-      // Remove the dive site from local state
-      setEntries((prevSites) => prevSites.filter((site) => site.id !== id));
+  // Remove the entry from local state
+  setEntries((prevSites) => prevSites.filter((site) => site.id !== id));
     } catch (err) {
       setError("Failed to delete entry. Please try again.");
       throw err;

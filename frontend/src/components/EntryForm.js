@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import Select from "react-select";
-import "./DiveSiteForm.css";
+import "./EntryForm.css";
 import countries from "../data/countries";
 import {
   testFirebaseWrite,

@@ -4,7 +4,7 @@ import EntriesList from "../components/EntriesList";
 const EntriesPage = () => {
   return (
     <div>
-  <EntriesList />
+      <EntriesList />
     </div>
   );
 };

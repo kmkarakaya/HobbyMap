@@ -1,4 +1,4 @@
-// Entry Firebase Service (stores 'entries' in the `diveSites` collection for backwards compatibility)
+// Entry Firebase Service (moved from diveService.js)
 import {
   collection,
   doc,
@@ -19,9 +19,9 @@ import { geocodeLocation } from "./geocoder";
 // For debugging - log the db object
 console.log("Firebase db object:", db);
 
-// For MVP, use the legacy collection name so existing users see their data
-// without requiring a migration. We can switch back to `entries` later.
-const COLLECTION_NAME = "diveSites";
+// Use the new canonical collection name for entries. No backward compatibility
+// is required per project scope — we'll store entries under `entries`.
+const COLLECTION_NAME = "entries";
 const entriesCollection = collection(db, COLLECTION_NAME);
 
 /**
@@ -36,26 +36,6 @@ export const getEntries = async (userId = null) => {
   console.log("Starting to fetch entries...");
   console.log("Collection reference:", entriesCollection);
     console.log("DB reference:", db);
-
-    // First, check if we can access the collection at all
-    try {
-      // `entriesCollection` is the correct collection reference (keeps compatibility
-      // with the existing `diveSites` collection name). `diveSitesCollection` was
-      // an old/incorrect identifier that caused a lint/runtime failure.
-      const simpleSnapshot = await getDocs(entriesCollection);
-      console.log(
-        "Simple collection access successful, found",
-        simpleSnapshot.size,
-        "documents"
-      );
-    } catch (accessError) {
-      console.error("Failed basic collection access:", accessError);
-      console.error(
-        "Access error details:",
-        JSON.stringify(accessError, null, 2)
-      );
-      throw new Error(`Database access error: ${accessError.message}`);
-    }
 
     // Now try with query. Prefer ordering by 'date' but gracefully fall back if
     // an index/ordering prevents results from being returned (common in dev).
@@ -201,7 +181,7 @@ export const createEntry = async (entryData) => {
     if (!entryData.userId && currentUid) {
       entryData.userId = currentUid;
     }
-    // As a compatibility shim, also set ownerId for diveSites-backed storage
+    // Ensure ownerId is present for security rules
     if (!entryData.ownerId && entryData.userId) {
       entryData.ownerId = entryData.userId;
     }
@@ -280,10 +260,10 @@ export const updateEntry = async (id, updateData) => {
     }
   const docRef = doc(db, COLLECTION_NAME, id);
 
-  // First get the existing dive site to check if location has changed
+  // First get the existing entry to check if location has changed
     const existingDoc = await getDoc(docRef);
     if (!existingDoc.exists()) {
-      throw new Error("Dive site not found");
+      throw new Error("Entry not found");
     }
 
     const existingData = existingDoc.data();

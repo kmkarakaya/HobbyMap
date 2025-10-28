@@ -52,17 +52,6 @@ const EntryMap = () => {
   // Refs for marker instances so we can open/close popups programmatically
   const markerRefs = useRef({});
   const isPlayingRef = useRef(false);
-
-  if (loading) return <div className="loading">Loading map...</div>;
-
-  if (error) {
-    return (
-      <div className="error">
-        <p>{error}</p>
-        <button onClick={retryLoadEntries} className="retry-button">Retry Loading</button>
-      </div>
-    );
-  }
   // Build marker list flexibly: support `latitude`/`longitude`, legacy `lat`/`lng`,
   // and nested `location` objects. Convert to Numbers and drop invalid coords.
   const markers = (entries || [])
@@ -94,6 +83,17 @@ const EntryMap = () => {
       // ignore logging errors
     }
   }, [entries, markers]);
+
+  if (loading) return <div className="loading">Loading map...</div>;
+
+  if (error) {
+    return (
+      <div className="error">
+        <p>{error}</p>
+        <button onClick={retryLoadEntries} className="retry-button">Retry Loading</button>
+      </div>
+    );
+  }
 
   // Helper to sleep for ms
   const sleep = (ms) => new Promise((res) => setTimeout(res, ms));

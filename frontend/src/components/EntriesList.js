@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
-import "./DiveSitesList.css";
+import "./EntriesList.css";
 
 // Unified entries list using the card/grid layout
 const EntriesList = () => {
