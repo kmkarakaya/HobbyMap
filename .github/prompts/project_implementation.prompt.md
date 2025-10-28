@@ -115,8 +115,8 @@ This step-by-step plan will help guide Copilot and developers through building t
   - Initialize map with world view
   - Add zoom and pan controls
   - Set up tile layer (OpenStreetMap or Mapbox)
-- Integrate dive site data:
-  - Fetch dive sites from Firestore
+-- Integrate entry data:
+  - Fetch entries from Firestore
   - Convert to map markers
   - Custom marker icons (optional)
   - Handle loading and error states
@@ -199,10 +199,10 @@ This step-by-step plan will help guide Copilot and developers through building t
 ## 6. Future Enhancements
 
 - User authentication with Firebase Auth
-- User-specific dive sites
+- User-specific entries
 - Advanced filtering and search
 - Custom marker icons
-- Image uploads for dive sites
+- Image uploads for entries
 - Mobile app version with React Native
 
 ---
@@ -217,8 +217,8 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 2. **Set up Firebase:**
 
-   ```
-   "Copilot, help me set up Firebase configuration for my scuba diving app."
+  ``` 
+  "Copilot, help me set up Firebase configuration for the Hobby Map app."
    ```
 
 3. **Implement frontend components:**
@@ -229,7 +229,7 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 4. **Connect to Firestore:**
    ```
-   "Copilot, help me implement the Firestore service to manage dive sites."
+  "Copilot, help me implement the Firestore service to manage entries."
    ```
 
 Focus on getting each core feature working before moving to the next.
@@ -254,15 +254,15 @@ Focus on getting each core feature working before moving to the next.
   - Extract user ID
   - Add user to request object
 
-### 2.4. Dive Site API
+### 2.4. Entries API
 
-- Implement API endpoints:
+Implement API endpoints:
 
-  - `GET /api/dives` - List all dive sites for logged-in user
-  - `GET /api/dives/:id` - Get specific dive site details
-  - `POST /api/dives` - Create new dive site
-  - `PUT /api/dives/:id` - Update existing dive site
-  - `DELETE /api/dives/:id` - Delete dive site
+  - `GET /api/entries` - List all entries for logged-in user
+  - `GET /api/entries/:id` - Get specific entry details
+  - `POST /api/entries` - Create new entry
+  - `PUT /api/entries/:id` - Update existing entry
+  - `DELETE /api/entries/:id` - Delete entry
 
 - Implement geocoding service:
 
@@ -272,14 +272,14 @@ Focus on getting each core feature working before moving to the next.
   - Add caching for frequently used locations
 
 - Add filtering capabilities:
-  - `GET /api/dives?startDate=X&endDate=Y` - Filter by date range
-  - `GET /api/dives?location=X` - Filter by location
+  - `GET /api/entries?startDate=X&endDate=Y` - Filter by date range
+  - `GET /api/entries?location=X` - Filter by location
 
 ### 2.5. Sharing API
 
 - Implement public sharing endpoints:
   - Generate unique share ID
-  - `GET /api/share/:shareId` - Get publicly shared dive sites
+  - `GET /api/share/:shareId` - Get publicly shared entries
 
 ### 2.6. Backend Testing
 

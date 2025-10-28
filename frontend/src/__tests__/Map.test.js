@@ -27,7 +27,7 @@ const mockFirebaseContext = {
   entries: [
     {
       id: '1',
-      title: 'First Dive',
+      title: 'First Entry',
       latitude: 25.7617,
       longitude: -80.1918,
       date: new Date('2023-01-15'),
@@ -37,7 +37,7 @@ const mockFirebaseContext = {
     },
     {
       id: '2', 
-      title: 'Second Dive',
+      title: 'Second Entry',
       latitude: 36.7783,
       longitude: -119.4179,
       date: new Date('2023-06-20'),

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
-import "./DiveSitesList.css";
+import "./EntriesList.css";
 
 // Unified entries list using the card/grid layout
 const EntriesList = () => {
@@ -44,8 +44,8 @@ const EntriesList = () => {
   }
 
   return (
-    <div className="dive-sites-list-container">
-      <div className="dive-sites-header">
+    <div className="entries-list-container">
+      <div className="entries-header">
         <h2>My Entries</h2>
         <Link to="/add" className="add-button">
           Add New Entry
@@ -60,9 +60,9 @@ const EntriesList = () => {
           </Link>
         </div>
       ) : (
-        <div className="dive-sites-grid">
+  <div className="entries-grid">
           {entriesList.map((site) => (
-            <div className="dive-site-card" key={site.id}>
+            <div className="entry-card" key={site.id}>
               <h3>{site.title || site.siteName}</h3>
               {site.hobby && <div className="hobby-label">{site.hobby}</div>}
               <p>

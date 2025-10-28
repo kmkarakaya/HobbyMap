@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useFirebase } from "../contexts/FirebaseContext";
 import Select from "react-select";
-import "./DiveSiteForm.css";
+import "./EntryForm.css";
 import countries from "../data/countries";
 import {
   testFirebaseWrite,
@@ -118,7 +118,7 @@ const EntryForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   };
 
   return (
-    <div className="dive-site-form-container">
+  <div className="entry-form-container">
       <h2>{isEditing ? "Edit Entry" : "Add New Entry"}</h2>
       {error && <div className="error-message">{error}</div>}
       {success && (

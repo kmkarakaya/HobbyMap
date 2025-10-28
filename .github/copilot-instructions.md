@@ -70,7 +70,7 @@ HobbyMap is a React-based web application for tracking location-based hobby acti
    - Verify all pages load without errors
 
 2. **Authentication Flow**:
-   - Click "Add Dive Site" - should redirect to login page
+  - Click "Add Entry" - should redirect to login page
    - Verify Firebase authentication UI displays correctly
    - Test that protected routes require authentication
 
@@ -99,17 +99,12 @@ HobbyMap is a React-based web application for tracking location-based hobby acti
   - Deploys frontend build and Firestore configuration
 
 ### Firebase Configuration Files:
-- `firebase.json` - hosting and Firestore configuration
-- `firestore.rules` - database security rules (currently open for development)
-- `firestore.indexes.json` - database indexes
-- Frontend Firebase config in `frontend/src/firebase.js` and client-side service helpers in `frontend/src/firebase/diveService.js`
+- Frontend Firebase config in `frontend/src/firebase.js` and client-side service helpers in `frontend/src/firebase/entriesService.js`
 
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflow:
-- Workflow file: `.github/workflows/firebase-hosting.yml`
-- Triggers on pushes to master/main affecting frontend files
-- Builds frontend and deploys to Firebase automatically
+-- File encoding issue in `frontend/src/firebase/entriesService.js` (if present)
 - Requires `FIREBASE_TOKEN` secret in repository settings
 
 ### CI Commands (matching workflow):
@@ -138,7 +133,7 @@ firebase deploy --only hosting,firestore:rules,firestore:indexes --project $FIRE
 - `frontend/package.json` - Frontend dependencies and scripts
 - `backend/package.json` - Backend dependencies and scripts
 - `frontend/src/firebase.js` - Firebase configuration
-- `frontend/src/firebase/diveService.js` - Firestore CRUD and geocoding helpers for entries
+- `frontend/src/firebase/entriesService.js` - Firestore CRUD and geocoding helpers for entries
 - `frontend/src/firebase/geocoder.js` - geocoding helper
 - `README.md` - Project overview and setup instructions
 - `FIREBASE_MIGRATION_GUIDE.md` - Firebase setup guide
@@ -167,7 +162,7 @@ npm install  # Takes ~5 seconds
 ### Build Issues:
 - Use `npm install --legacy-peer-deps` for frontend to resolve React dependency conflicts
 - Some ESLint warnings exist but don't prevent builds
--- File encoding issue in `frontend/src/firebase/diveService.js` (UTF-16 BOM)
+-- File encoding issue in `frontend/src/firebase/entriesService.js` (UTF-16 BOM)
 
 ### Development Environment:
 - Map tiles may be blocked in sandboxed environments (shows ERR_BLOCKED_BY_CLIENT)

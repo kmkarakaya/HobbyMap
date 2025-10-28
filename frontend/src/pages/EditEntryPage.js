@@ -11,10 +11,10 @@ const EditEntryPage = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    const fetchEntry = async () => {
+  const fetchEntry = async () => {
       try {
         const data = await getEntry(id);
-        setEntry(data);
+          setEntry(data);
       } catch (err) {
         console.error("Error fetching entry:", err);
         setErrorMessage("Failed to load entry. Please try again.");
@@ -23,11 +23,29 @@ const EditEntryPage = () => {
       }
     };
 
-    fetchEntry();
+  fetchEntry();
   }, [id, getEntry, entries]);
 
   const handleSubmit = async (formData) => {
     try {
+      console.log("Submitting updated form data:", formData);
+  console.log("Original entry data:", entry);
+
+      // Check if location has been changed
+      // Compare place/country to detect change
+      const newPlace = formData.place || "";
+      const newCountry = formData.country || "";
+      const locationChanged = (entry.place || "") !== newPlace || (entry.country || "") !== newCountry;
+      console.log(
+        "Location changed:",
+        locationChanged,
+        "Original:",
+        { place: entry.place, country: entry.country },
+        "New:",
+        { place: newPlace, country: newCountry }
+      );
+
+      // Convert the string date to a JavaScript Date object
       const dateObject = formData.date ? new Date(formData.date) : null;
 
       const dataToUpdate = {
@@ -35,25 +53,37 @@ const EditEntryPage = () => {
         hobby: formData.hobby,
         place: formData.place,
         country: formData.country,
-        date: dateObject,
+        date: dateObject, // Use Date object instead of string
         notes: formData.notes,
       };
 
-      await updateEntry(id, dataToUpdate);
+      // If location changed, explicitly set coordinates to null to force re-geocoding
+      if (locationChanged) {
+        console.log("Location changed, forcing geocoding");
+      }
+
+      console.log("Data being sent to update:", dataToUpdate);
+  await updateEntry(id, dataToUpdate);
+  // Navigation is handled by EntryForm after showing success message
     } catch (err) {
       console.error("Error updating entry:", err);
       setErrorMessage("Failed to update entry. Please try again.");
     }
   };
 
-  if (loadingEntry) return <div className="loading">Loading entry...</div>;
+      if (loadingEntry)
+    return <div className="loading">Loading entry...</div>;
   if (errorMessage) return <div className="error">{errorMessage}</div>;
   if (!entry) return <div className="error">Entry not found.</div>;
 
   return (
-    <div className="edit-entry-page">
-      <h1>Edit Entry</h1>
-      <EntryForm initialData={entry} onSubmit={handleSubmit} isEditing={true} />
+  <div className="edit-entry-page">
+  <h1>Edit Entry</h1>
+      <EntryForm
+        initialData={entry}
+        onSubmit={handleSubmit}
+        isEditing={true}
+      />
     </div>
   );
 };

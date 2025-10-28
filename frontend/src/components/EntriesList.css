@@ -1,30 +1,18 @@
-.dive-sites-list-container {
+.entries-list-container {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 1rem;
 }
 
-.dive-sites-header {
+.entries-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
 }
 
-.dive-sites-list-container {
-  max-width: 1240px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
 
-.dive-sites-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.dive-sites-header h2 {
+.entries-header h2 {
   margin: 0;
   color: #1565c0; /* slightly darker blue */
   font-size: 1.6rem;
@@ -73,14 +61,14 @@
   color: #d32f2f;
 }
 
-.dive-sites-grid {
+.entries-grid {
   display: grid;
   /* prefer 3 columns on wide screens, shrink down responsively */
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.25rem;
 }
 
-.dive-site-card {
+.entry-card {
   background-color: #ffffff;
   border-radius: 10px;
   box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
@@ -92,12 +80,12 @@
   min-height: 170px;
 }
 
-.dive-site-card:hover {
+.entry-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 12px 24px rgba(16, 24, 40, 0.12);
 }
 
-.dive-site-card h3 {
+.entry-card h3 {
   margin-top: 0;
   margin-bottom: 0.6rem;
   color: #1565c0;
@@ -111,13 +99,13 @@
   margin-bottom: 0.5rem;
 }
 
-.dive-site-card p {
+.entry-card p {
   margin: 0.45rem 0;
   font-size: 0.95rem;
   color: #333;
 }
 
-.dive-site-card p strong {
+.entry-card p strong {
   color: #222;
   font-weight: 700;
 }
@@ -161,19 +149,19 @@
 }
 
 @media (max-width: 900px) {
-  .dive-sites-header {
+  .entries-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
 
-  .dive-sites-grid {
+  .entries-grid {
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   }
 }
 
 @media (max-width: 480px) {
-  .dive-site-card { padding: 1rem; }
-  .dive-sites-list-container { padding: 0 0.6rem; }
+  .entry-card { padding: 1rem; }
+  .entries-list-container { padding: 0 0.6rem; }
   .card-actions { justify-content: flex-start; }
 }

@@ -1,4 +1,4 @@
-.dive-site-form-container {
+.entry-form-container {
   max-width: 600px;
   margin: 2rem auto;
   padding: 1.5rem;
@@ -7,7 +7,7 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.dive-site-form-container h2 {
+.entry-form-container h2 {
   margin-top: 0;
   margin-bottom: 1.5rem;
   color: #1a73e8;
