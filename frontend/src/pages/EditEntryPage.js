@@ -11,7 +11,7 @@ const EditEntryPage = () => {
   const [errorMessage, setErrorMessage] = useState(null);
 
   useEffect(() => {
-    const fetchDiveSite = async () => {
+  const fetchEntry = async () => {
       try {
         const data = await getEntry(id);
           setEntry(data);
@@ -23,7 +23,7 @@ const EditEntryPage = () => {
       }
     };
 
-    fetchDiveSite();
+  fetchEntry();
   }, [id, getEntry, entries]);
 
   const handleSubmit = async (formData) => {
@@ -64,7 +64,7 @@ const EditEntryPage = () => {
 
       console.log("Data being sent to update:", dataToUpdate);
   await updateEntry(id, dataToUpdate);
-      // Navigation is handled by DiveSiteForm after showing success message
+  // Navigation is handled by EntryForm after showing success message
     } catch (err) {
       console.error("Error updating entry:", err);
       setErrorMessage("Failed to update entry. Please try again.");
@@ -77,7 +77,7 @@ const EditEntryPage = () => {
   if (!entry) return <div className="error">Entry not found.</div>;
 
   return (
-    <div className="edit-dive-site-page">
+  <div className="edit-entry-page">
   <h1>Edit Entry</h1>
       <EntryForm
         initialData={entry}

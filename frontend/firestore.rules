@@ -15,7 +15,7 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
     }
 
-    // Legacy diveSites collection removed; client and server use `entries` collection.
+  // Legacy collection removed; client and server use `entries` collection.
 
     match /{document=**} {
       allow read, write: if false;

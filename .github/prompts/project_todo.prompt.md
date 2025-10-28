@@ -28,7 +28,7 @@ High priority (necessary for MVP)
 4) Map marker behavior and verification
 	- Why: MVP requires interactive markers with popups showing entry title, hobby and date.
 	- Acceptance criteria: Map displays markers for saved entries; clicking shows `title`, `hobby` and ISO-formatted date; markers persist after reload.
-	- Suggested files: `frontend/src/components/Map.js`, `frontend/src/components/DiveSitesList.js`.
+	- Suggested files: `frontend/src/components/Map.js`, `frontend/src/components/EntriesList.js`.
 
 
 	- `frontend/src/firebase/entryService.js` — continue using the top-level `entries` collection, but require `userId` on create/update; modify `getEntries(userId)` to query `where('userId', '==', userId)`. Update field mapping for `title`/`hobby`.
@@ -37,7 +37,7 @@ High priority (necessary for MVP)
 		- On app startup the client checks Firebase Auth state immediately and routes appropriately (loading -> authenticated -> app, or loading -> unauthenticated -> auth UI).
 		- Auth UI provides sign-up and sign-in (email/password) and a Google Sign-In option.
 		- While auth state is being determined a visual loading state prevents flash of unauthenticated UI.
-	- All Firestore queries include the current user's UID (stored on each document as `userId` in the existing top-level `diveSites` collection) so users only see their own entries. (Note: for MVP we will keep the existing top-level `diveSites` collection and require `userId` on writes — migration is not required.)
+	- All Firestore queries include the current user's UID (stored on each document as `userId` in the existing top-level `entries` collection) so users only see their own entries. (Note: for MVP we will keep the existing top-level `entries` collection and require `userId` on writes — migration is not required.)
 		- Protected routes/components (map, dive list, add/edit forms) redirect to login if unauthenticated.
 		- Basic unit tests exist for the auth context/session-check logic (happy path + unauthenticated redirect).
 	- Files to change (MVP-focused):
@@ -61,15 +61,15 @@ High priority (necessary for MVP)
 		5. Ensure `LoginPage` and `SignupPage` redirect when `user` exists:
 			- If `user` is present (context), run `navigate('/dives')` to avoid showing login to signed-in users.
 		6. Enforce `userId` on Firestore writes (simple serverless client-side enforcement):
-			- In `FirebaseContext.createDiveSite` attach `user.uid` to the document payload before calling the service. Rename UI payload fields (`siteName` -> `title`) as needed.
-			- In `diveService.createDiveSite` log/warn and reject if no `userId` present to catch programming mistakes during development.
+			- In `FirebaseContext.createEntry` attach `user.uid` to the document payload before calling the service. Rename UI payload fields (`siteName` -> `title`) as needed.
+			- In `entryService.createEntry` log/warn and reject if no `userId` present to catch programming mistakes during development.
 		7. Scope reads to `userId`:
-			- Update `getDiveSites(userId)` to require `userId` and query `where('userId', '==', userId)` (context already calls `fetchDiveSites(u.uid)`).
+			- Update `getEntries(userId)` to require `userId` and query `where('userId', '==', userId)` (context already calls `fetchEntries(u.uid)`).
 		8. Add minimal unit tests (Jest + React Testing Library):
 			- Test `FirebaseContext` behavior: mock `onAuthStateChanged` to simulate initial unauthenticated/authenticated callbacks. Verify `isAuthReady` toggles and `user` becomes set.
 			- Test `ProtectedRoute` behavior for `isAuthReady=false` (renders loading), `isAuthReady=true && user=null` (redirects), `isAuthReady=true && user!=null` (renders children).
 		9. Update firewall/rules notes for MVP:
-			- Provide `firestore.rules` that enforce `request.auth != null && request.auth.uid == request.resource.data.userId` on create/update where appropriate. Example rule for `diveSites` top-level:
+			- Provide `firestore.rules` that enforce `request.auth != null && request.auth.uid == request.resource.data.userId` on create/update where appropriate. Example rule for the `entries` top-level:
 			  match /databases/{database}/documents {
 						match /entries/{docId} {
 							allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
@@ -87,12 +87,12 @@ Medium priority (improve UX & robustness)
 5) Country selection UX: store ISO code vs. name
 	- Why: Using country name works, but storing ISO2 codes is more robust for geocoding and internationalization.
 	- Acceptance criteria: `country` stored in Firestore as ISO2 code (e.g., "EG"), geocoder accepts ISO2 or name. UI shows human-readable name but persists ISO2. Provide migration guidance for existing data (empty DB was noted earlier).
-	- Suggested files: `frontend/src/components/DiveSiteForm.js`, `frontend/src/data/countries.js`, `frontend/src/firebase/geocoder.js`, `frontend/src/firebase/diveService.js`.
+	- Suggested files: `frontend/src/components/EntryForm.js`, `frontend/src/data/countries.js`, `frontend/src/firebase/geocoder.js`, `frontend/src/firebase/entryService.js`.
 
 6) Searchable country component polish
 	- Why: Already added `react-select`. Improve keyboard accessibility and ensure mobile styling.
 	- Acceptance criteria: Country input works on touch devices; accessible labels; value preservation while editing.
-	- Suggested files: `frontend/src/components/DiveSiteForm.js`, `frontend/src/components/DiveSiteForm.css`.
+	- Suggested files: `frontend/src/components/EntryForm.js`, `frontend/src/components/EntryForm.css`.
 
 7) Add validation & user feedback on geocoding failures
 	- Why: If geocoding fails, user should see a friendly error and be able to enter coordinates manually.
@@ -137,8 +137,8 @@ Suggested next concrete tasks (in order)
 --------------------------------------
 1. Add debug logging to `frontend/src/firebase/geocoder.js` (low-risk) and re-test problematic entries (Sharm el Sheikh, Zanzibar). (1-2 hrs)
 2. Migrate `country` to ISO2 in Firestore: change UI to store code and update geocoder to accept code. (2-4 hrs)
-3. Add latitude/longitude manual input fallback in `DiveSiteForm.js`. (1-2 hrs)
-4. Add `title` and `hobby` fields to `DiveSiteForm.js`, update `DiveSitesList` and `Map` popups to show `title` and `hobby`. (1-2 hrs)
+	3. Add latitude/longitude manual input fallback in `EntryForm.js`. (1-2 hrs)
+	4. Add `title` and `hobby` fields to `EntryForm.js`, update `EntriesList` and `Map` popups to show `title` and `hobby`. (1-2 hrs)
 4. Harden Firestore security rules and include a `firestore.rules` in repo. (1-2 hrs)
 5. Add basic unit tests and a minimal CI step to run lint. (2-4 hrs)
 

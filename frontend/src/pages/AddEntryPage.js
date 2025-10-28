@@ -13,7 +13,7 @@ const AddEntryPage = () => {
     }
     // Do not include combined `location` in MVP
   await createEntry(payload);
-    // Navigation is handled by DiveSiteForm after showing success message
+  // Navigation is handled by EntryForm after showing success message
   };
 
   return (

@@ -192,7 +192,7 @@ The frontend is a modern React application built with:
  - `EntryMap`: Interactive Leaflet map component (formerly DiveMap)
 - `Header`: Navigation with authentication state
 - `ProtectedRoute`: Route wrapper requiring authentication
- - `EntryForm`: Form for adding/editing entries (formerly DiveSiteForm)
+ - `EntryForm`: Form for adding/editing entries.
 - `FirebaseContext`: Authentication and data management
 ## Deployment
 

@@ -118,7 +118,7 @@ const EntryForm = ({ initialData = null, onSubmit, isEditing = false }) => {
   };
 
   return (
-    <div className="dive-site-form-container">
+  <div className="entry-form-container">
       <h2>{isEditing ? "Edit Entry" : "Add New Entry"}</h2>
       {error && <div className="error-message">{error}</div>}
       {success && (
