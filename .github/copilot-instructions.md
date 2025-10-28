@@ -70,7 +70,7 @@ HobbyMap is a React-based web application for tracking location-based hobby acti
    - Verify all pages load without errors
 
 2. **Authentication Flow**:
-   - Click "Add Dive Site" - should redirect to login page
+  - Click "Add Entry" - should redirect to login page
    - Verify Firebase authentication UI displays correctly
    - Test that protected routes require authentication
 
@@ -99,17 +99,12 @@ HobbyMap is a React-based web application for tracking location-based hobby acti
   - Deploys frontend build and Firestore configuration
 
 ### Firebase Configuration Files:
-- `firebase.json` - hosting and Firestore configuration
-- `firestore.rules` - database security rules (currently open for development)
-- `firestore.indexes.json` - database indexes
-- Frontend Firebase config in `frontend/src/firebase.js` and client-side service helpers in `frontend/src/firebase/diveService.js`
+- Frontend Firebase config in `frontend/src/firebase.js` and client-side service helpers in `frontend/src/firebase/entriesService.js`
 
 ## CI/CD Pipeline
 
 ### GitHub Actions Workflow:
-- Workflow file: `.github/workflows/firebase-hosting.yml`
-- Triggers on pushes to master/main affecting frontend files
-- Builds frontend and deploys to Firebase automatically
+-- File encoding issue in `frontend/src/firebase/entriesService.js` (if present)
 - Requires `FIREBASE_TOKEN` secret in repository settings
 
 ### CI Commands (matching workflow):

@@ -5,7 +5,7 @@
   - Exchanges the created user for an ID token
   - Initializes the Firebase client SDK to point at the emulators
   - Uses the ID token to authenticate the client via setPersistence and signInWithCustomToken
-  - Performs a create on `diveSites` and `entries` to exercise rules
+  - Performs a create on `entries` to exercise rules
 
   Note: This script requires node-fetch and firebase packages in your workspace.
 */
@@ -45,11 +45,11 @@ async function main() {
     // Skipping actual client sign-in; instead attempt unauthenticated writes to confirm public reads.
 
     const db = getFirestore(app);
-    const diveSitesCol = collection(db, 'diveSites');
+    const entriesCol = collection(db, 'entries');
 
-    console.log('Attempting to add a diveSite without ownerId (should fail under rules)');
+    console.log('Attempting to add an entry without ownerId (should fail under rules)');
     try {
-      const res = await addDoc(diveSitesCol, { title: 'Test Site', place: 'Nowhere', createdAt: new Date() });
+      const res = await addDoc(entriesCol, { title: 'Test Site', place: 'Nowhere', createdAt: new Date() });
       console.log('Unexpected success, doc id:', res.id);
     } catch (err) {
       console.log('Expected failure:', err.message);

@@ -18,7 +18,7 @@ High priority (necessary for MVP)
 2) Confirm Firestore data model and consistency (use `place` + `country` + `hobby` schema)
 	- Why: Project scope extended from scuba dives to arbitrary hobby entries. Ensure all read/write code, backend model, and docs are consistent with the new `title` and `hobby` fields while keeping `place` + `country` for geocoding.
 	- Acceptance criteria: All create/update flows write `title`, `hobby`, `place`, `country`, `latitude`, `longitude`, `date` (timestamp) and `notes`. No code path still writes or reads legacy `location` fields. Existing `siteName` usages should be mapped to `title` in UI and docs.
-	- Suggested files: `frontend/src/firebase/diveService.js`, `frontend/src/pages/*`, `backend/models/DiveSite.js`, `backend/controllers/*`, `frontend/src/components/DiveSiteForm.js`.
+		- Suggested files: `frontend/src/firebase/entriesService.js`, `frontend/src/pages/*`, `backend/models/Entry.js`, `backend/controllers/*`, `frontend/src/components/EntryForm.js`.
 
 3) Client-side geocoding reliability & debug logging
 	- Why: Geocoder previously returned wrong country-prefixed results for ambiguous names. We improved heuristics but need debug tooling to catch future mis-resolutions.
@@ -45,7 +45,7 @@ High priority (necessary for MVP)
 		- `frontend/src/App.js` and `frontend/src/index.js` — ensure app is wrapped with the provider; do not render main routes until `isAuthReady` is true (context can show a global loading state).
 		- `frontend/src/pages/LoginPage.js`, `frontend/src/pages/SignupPage.js` — add Google Sign-In button + redirect after successful auth. If `user` exists, redirect away from auth pages.
 		- `frontend/src/components/ProtectedRoute.js` — use `isAuthReady` and `user` to prevent redirect until auth init completes; redirect to `/login` only after `isAuthReady` and user is null.
-	- `frontend/src/firebase/diveService.js` — continue using the top-level `diveSites` collection, but require `userId` on create/update; modify `getDiveSites(userId)` to query `where('userId', '==', userId)`. Update field mapping for `title`/`hobby`.
+		- `frontend/src/firebase/entriesService.js` — continue using the top-level `entries` collection and require `userId` on create/update; modify `getEntries(userId)` to query `where('userId', '==', userId)`. Update field mapping for `title`/`hobby`.
 		- `frontend/src/components/Header.js` — already reads `user`; ensure sign-out clears local state and navigates if needed.
 	- Detailed step-by-step implementation (MVP, no migration):
 		1. Ensure `FirebaseContext` uses `onAuthStateChanged` and exposes an `isAuthReady` flag:
@@ -71,14 +71,14 @@ High priority (necessary for MVP)
 		9. Update firewall/rules notes for MVP:
 			- Provide `firestore.rules` that enforce `request.auth != null && request.auth.uid == request.resource.data.userId` on create/update where appropriate. Example rule for `diveSites` top-level:
 			  match /databases/{database}/documents {
-								match /diveSites/{docId} {
-									allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
-									allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
-								}
+						match /entries/{docId} {
+							allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+							allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+						}
 			  }
 			- Recommend testing rules with the Firebase emulator before deploying.
 	- Security note (MVP tradeoff):
-		- For speed and simplicity we keep the top-level `diveSites` collection and use a `userId` field to enforce per-user access in rules. This is simpler for an MVP; later you can migrate to `/users/{uid}/dives` if desired.
+		- For speed and simplicity we keep the top-level `entries` collection and use a `userId` field to enforce per-user access in rules. This is simpler for an MVP; later you can migrate to `/users/{uid}/entries` if desired.
 	- Estimated effort for MVP approach: 2-4 hours (add Google sign-in + auth-ready guard + update reads/writes + tests).
 
 Medium priority (improve UX & robustness)

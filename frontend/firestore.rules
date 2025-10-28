@@ -15,19 +15,7 @@ service cloud.firestore {
       allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
     }
 
-    match /diveSites/{site} {
-      allow read: if true;
-      allow create: if isSignedIn() && (
-        request.resource.data.ownerId == request.auth.uid ||
-        request.resource.data.userId == request.auth.uid
-      );
-      // Allow update/delete if ownerId or legacy userId matches, or admin
-      allow update, delete: if isSignedIn() && (
-        resource.data.ownerId == request.auth.uid ||
-        resource.data.userId == request.auth.uid ||
-        isAdmin()
-      );
-    }
+    // Legacy diveSites collection removed; client and server use `entries` collection.
 
     match /{document=**} {
       allow read, write: if false;

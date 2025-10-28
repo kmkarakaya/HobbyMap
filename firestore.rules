@@ -20,24 +20,7 @@ service cloud.firestore {
 		}
 
 		// Dive sites: these are public read (map markers) but writes should be
-		// restricted. Creating a diveSite requires an `ownerId` equal to the
-		// authenticated user's UID. Only the owner or an admin can update/delete.
-			match /diveSites/{siteId} {
-				allow read: if true;
-				// Allow creation if the authenticated user is the owner or the userId on
-				// the document matches the authenticated user. This covers older clients
-				// which may only set `userId`.
-				allow create: if isSignedIn() && (
-					request.resource.data.ownerId == request.auth.uid ||
-					request.resource.data.userId == request.auth.uid
-				);
-				// Allow update/delete by either the ownerId or the legacy userId field, or by admins.
-				allow update, delete: if isSignedIn() && (
-					resource.data.ownerId == request.auth.uid ||
-					resource.data.userId == request.auth.uid ||
-					isAdmin()
-				);
-			}
+		// Note: legacy top-level `diveSites` collection removed. Use `/entries/{entryId}` instead.
 
 		// Users documents: users may read and write their own user doc. Admins may
 		// read/write any user doc.
