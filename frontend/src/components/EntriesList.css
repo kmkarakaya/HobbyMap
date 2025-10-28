@@ -11,18 +11,6 @@
   margin-bottom: 1.5rem;
 }
 
-.dive-sites-list-container {
-  max-width: 1240px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-}
-
-.dive-sites-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
 
 .entries-header h2 {
   margin: 0;

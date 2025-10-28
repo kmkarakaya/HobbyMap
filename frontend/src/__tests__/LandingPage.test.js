@@ -10,7 +10,7 @@ jest.mock('../contexts/FirebaseContext');
 
 // Mock the Map component
 jest.mock('../components/Map', () => {
-  return function MockDiveMap() {
+  return function MockMap() {
     return <div data-testid="entry-map">Mock Map Component</div>;
   };
 });

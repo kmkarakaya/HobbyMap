@@ -1,4 +1,4 @@
-// Entry Firebase Service (moved from diveService.js)
+// Entry Firebase Service (moved from legacy firebase service)
 import {
   collection,
   doc,

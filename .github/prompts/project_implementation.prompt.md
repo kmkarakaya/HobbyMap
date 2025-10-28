@@ -199,10 +199,10 @@ This step-by-step plan will help guide Copilot and developers through building t
 ## 6. Future Enhancements
 
 - User authentication with Firebase Auth
-- User-specific dive sites
+- User-specific entries
 - Advanced filtering and search
 - Custom marker icons
-- Image uploads for dive sites
+- Image uploads for entries
 - Mobile app version with React Native
 
 ---
@@ -217,8 +217,8 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 2. **Set up Firebase:**
 
-   ```
-   "Copilot, help me set up Firebase configuration for my scuba diving app."
+  ``` 
+  "Copilot, help me set up Firebase configuration for the Hobby Map app."
    ```
 
 3. **Implement frontend components:**
@@ -229,7 +229,7 @@ This step-by-step plan will help guide Copilot and developers through building t
 
 4. **Connect to Firestore:**
    ```
-   "Copilot, help me implement the Firestore service to manage dive sites."
+  "Copilot, help me implement the Firestore service to manage entries."
    ```
 
 Focus on getting each core feature working before moving to the next.
@@ -272,14 +272,14 @@ Implement API endpoints:
   - Add caching for frequently used locations
 
 - Add filtering capabilities:
-  - `GET /api/dives?startDate=X&endDate=Y` - Filter by date range
-  - `GET /api/dives?location=X` - Filter by location
+  - `GET /api/entries?startDate=X&endDate=Y` - Filter by date range
+  - `GET /api/entries?location=X` - Filter by location
 
 ### 2.5. Sharing API
 
 - Implement public sharing endpoints:
   - Generate unique share ID
-  - `GET /api/share/:shareId` - Get publicly shared dive sites
+  - `GET /api/share/:shareId` - Get publicly shared entries
 
 ### 2.6. Backend Testing
 

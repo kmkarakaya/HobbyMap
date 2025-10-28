@@ -133,7 +133,7 @@ firebase deploy --only hosting,firestore:rules,firestore:indexes --project $FIRE
 - `frontend/package.json` - Frontend dependencies and scripts
 - `backend/package.json` - Backend dependencies and scripts
 - `frontend/src/firebase.js` - Firebase configuration
-- `frontend/src/firebase/diveService.js` - Firestore CRUD and geocoding helpers for entries
+- `frontend/src/firebase/entriesService.js` - Firestore CRUD and geocoding helpers for entries
 - `frontend/src/firebase/geocoder.js` - geocoding helper
 - `README.md` - Project overview and setup instructions
 - `FIREBASE_MIGRATION_GUIDE.md` - Firebase setup guide
@@ -162,7 +162,7 @@ npm install  # Takes ~5 seconds
 ### Build Issues:
 - Use `npm install --legacy-peer-deps` for frontend to resolve React dependency conflicts
 - Some ESLint warnings exist but don't prevent builds
--- File encoding issue in `frontend/src/firebase/diveService.js` (UTF-16 BOM)
+-- File encoding issue in `frontend/src/firebase/entriesService.js` (UTF-16 BOM)
 
 ### Development Environment:
 - Map tiles may be blocked in sandboxed environments (shows ERR_BLOCKED_BY_CLIENT)

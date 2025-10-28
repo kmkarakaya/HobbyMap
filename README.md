@@ -189,7 +189,7 @@ The frontend is a modern React application built with:
 ### Key Components
 
 - `LandingPage`: Welcome page with call-to-action
- - `EntryMap`: Interactive Leaflet map component (formerly DiveMap)
+ - `EntryMap`: Interactive Leaflet map component 
 - `Header`: Navigation with authentication state
 - `ProtectedRoute`: Route wrapper requiring authentication
  - `EntryForm`: Form for adding/editing entries.
@@ -278,7 +278,7 @@ If you need to move hosting to a new Firebase project (for example to change the
 The backend server provides additional functionality but is not required for the frontend to work.
 
 ### Backend Features
-- RESTful API for dive site management
+- RESTful API for  site management
 - MongoDB integration with Mongoose
 - CORS enabled for frontend integration
 - Geocoding services for location data

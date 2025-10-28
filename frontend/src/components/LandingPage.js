@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useFirebase } from '../contexts/FirebaseContext';
-import DiveMap from './Map';
+import Map from './Map';
 import './LandingPage.css';
 
 const LandingPage = () => {
@@ -11,7 +11,7 @@ const LandingPage = () => {
   if (user) {
     return (
       <div>
-        <DiveMap />
+        <Map />
       </div>
     );
   }

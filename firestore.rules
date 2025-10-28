@@ -19,8 +19,8 @@ service cloud.firestore {
 			allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.userId || isAdmin());
 		}
 
-		// Dive sites: these are public read (map markers) but writes should be
-		// Note: legacy top-level collection removed. Use `/entries/{entryId}` instead.
+		// Map markers: these are public read (map markers); writes should be
+		// restricted to authenticated users. Note: legacy top-level collection removed. Use `/entries/{entryId}` instead.
 
 		// Users documents: users may read and write their own user doc. Admins may
 		// read/write any user doc.

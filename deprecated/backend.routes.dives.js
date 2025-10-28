@@ -1,22 +1,7 @@
-// DEPRECATED: Legacy dives route. The project now exposes /api/entries and
-// uses entryController.js. This file has been moved to deprecated/ for
-// retention and can be removed after confirming it's no longer referenced.
+// DEPRECATED: This file was moved to `deprecated/` for retention.
+// It has been intentionally stubbed out to avoid accidental usage.
+// If you need to restore the legacy route, retrieve it from version control.
 
-const express = require("express");
-const router = express.Router();
-const {
-  getDiveSites,
-  getDiveSite,
-  createDiveSite,
-  updateDiveSite,
-  deleteDiveSite,
-} = require("../controllers/diveController");
-
-router.route("/").get(getDiveSites).post(createDiveSite);
-router
-  .route("/:id")
-  .get(getDiveSite)
-  .put(updateDiveSite)
-  .delete(deleteDiveSite);
-
-module.exports = router;
+module.exports = function deprecatedRoutes() {
+  throw new Error('Deprecated route file - not intended for runtime.');
+};

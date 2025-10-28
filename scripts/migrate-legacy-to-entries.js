@@ -49,7 +49,7 @@ async function main() {
 
   console.log(`Starting migration: dryRun=${DRY_RUN}, preserveIds=${PRESERVE_IDS}, batchSize=${BATCH_SIZE}`);
 
-  const srcCol = db.collection('entries');
+  const srcCol = db.collection('legacyCollection');
   const dstCol = db.collection('entries');
 
   const snapshot = await srcCol.get();

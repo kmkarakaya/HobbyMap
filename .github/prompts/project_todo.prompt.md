@@ -16,14 +16,14 @@ High priority (necessary for MVP)
 	- Suggested files: `firestore.rules`, `frontend/firestore.rules`, `firebase/*.js` (client config)
 
 2) Confirm Firestore data model and consistency (use `place` + `country` + `hobby` schema)
-	- Why: Project scope extended from scuba dives to arbitrary hobby entries. Ensure all read/write code, backend model, and docs are consistent with the new `title` and `hobby` fields while keeping `place` + `country` for geocoding.
+	- Why: Project scope extended from scuba diving to arbitrary hobby entries. Ensure all read/write code, backend model, and docs are consistent with the new `title` and `hobby` fields while keeping `place` + `country` for geocoding.
 	- Acceptance criteria: All create/update flows write `title`, `hobby`, `place`, `country`, `latitude`, `longitude`, `date` (timestamp) and `notes`. No code path still writes or reads legacy `location` fields. Existing `siteName` usages should be mapped to `title` in UI and docs.
 		- Suggested files: `frontend/src/firebase/entriesService.js`, `frontend/src/pages/*`, `backend/models/Entry.js`, `backend/controllers/*`, `frontend/src/components/EntryForm.js`.
 
 3) Client-side geocoding reliability & debug logging
 	- Why: Geocoder previously returned wrong country-prefixed results for ambiguous names. We improved heuristics but need debug tooling to catch future mis-resolutions.
 	- Acceptance criteria: Client geocoder prefers country-matched results; when a geocode lookup fails or returns a non-matching country, debug output (console or log) includes the top N raw responses. Add optional environment-driven verbose logging.
-	- Suggested files: `frontend/src/firebase/geocoder.js`, `frontend/src/firebase/diveService.js`.
+	  - Suggested files: `frontend/src/firebase/geocoder.js`, `frontend/src/firebase/entriesService.js`.
 	- All Firestore queries include the current user's UID (stored on each document as `userId` in the existing top-level `entries` collection) so users only see their own entries. (Note: for MVP we will keep the existing top-level `entries` collection and require `userId` on writes — migration is not required.)
 4) Map marker behavior and verification
 	- Why: MVP requires interactive markers with popups showing entry title, hobby and date.
@@ -32,13 +32,13 @@ High priority (necessary for MVP)
 
 
 	- `frontend/src/firebase/entryService.js` — continue using the top-level `entries` collection, but require `userId` on create/update; modify `getEntries(userId)` to query `where('userId', '==', userId)`. Update field mapping for `title`/`hobby`.
-	- Why: The app currently lacks a consistent authentication/session check flow. For MVP we prefer a simple, robust approach that protects user data without complex migration. The frontend must detect whether a visitor is signed in on page load, present a clear login/signup flow when unauthenticated, and ensure Firestore reads/writes include the current user's UID so users only see their own dive sites.
+	- Why: The app currently lacks a consistent authentication/session check flow. For MVP we prefer a simple, robust approach that protects user data without complex migration. The frontend must detect whether a visitor is signed in on page load, present a clear login/signup flow when unauthenticated, and ensure Firestore reads/writes include the current user's UID so users only see their own entries.
 	- MVP acceptance criteria (simple approach):
 		- On app startup the client checks Firebase Auth state immediately and routes appropriately (loading -> authenticated -> app, or loading -> unauthenticated -> auth UI).
 		- Auth UI provides sign-up and sign-in (email/password) and a Google Sign-In option.
 		- While auth state is being determined a visual loading state prevents flash of unauthenticated UI.
 	- All Firestore queries include the current user's UID (stored on each document as `userId` in the existing top-level `entries` collection) so users only see their own entries. (Note: for MVP we will keep the existing top-level `entries` collection and require `userId` on writes — migration is not required.)
-		- Protected routes/components (map, dive list, add/edit forms) redirect to login if unauthenticated.
+		- Protected routes/components (map, entries list, add/edit forms) redirect to login if unauthenticated.
 		- Basic unit tests exist for the auth context/session-check logic (happy path + unauthenticated redirect).
 	- Files to change (MVP-focused):
 		- `frontend/src/contexts/FirebaseContext.js` — ensure the context exposes: `user`, `isAuthReady` (or equivalent), `loading`, `error`, and helpers `signUp`, `signIn`, `signOut`, `signInWithGoogle`.
@@ -57,9 +57,9 @@ High priority (necessary for MVP)
 			- If `isAuthReady && !user` redirect to `/login`.
 		4. Add Google Sign-In helper to the context and a UI button:
 			- In `FirebaseContext` add a `signInWithGoogle` helper using `GoogleAuthProvider` and `signInWithPopup` (or `signInWithRedirect` for mobile-heavy apps). Expose it in the context.
-			- In `LoginPage` add a button that calls `signInWithGoogle()` and navigates to `/dives` on success.
+			- In `LoginPage` add a button that calls `signInWithGoogle()` and navigates to `/entries` on success.
 		5. Ensure `LoginPage` and `SignupPage` redirect when `user` exists:
-			- If `user` is present (context), run `navigate('/dives')` to avoid showing login to signed-in users.
+			- If `user` is present (context), run `navigate('/entries')` to avoid showing login to signed-in users.
 		6. Enforce `userId` on Firestore writes (simple serverless client-side enforcement):
 			- In `FirebaseContext.createEntry` attach `user.uid` to the document payload before calling the service. Rename UI payload fields (`siteName` -> `title`) as needed.
 			- In `entryService.createEntry` log/warn and reject if no `userId` present to catch programming mistakes during development.
@@ -97,7 +97,7 @@ Medium priority (improve UX & robustness)
 7) Add validation & user feedback on geocoding failures
 	- Why: If geocoding fails, user should see a friendly error and be able to enter coordinates manually.
 	- Acceptance criteria: When geocoder cannot find a location, show a suggestion and optional latitude/longitude fields; prevent saving without coords unless user confirms.
-	- Suggested files: `frontend/src/components/DiveSiteForm.js`.
+	- Suggested files: `frontend/src/components/EntryForm.js`.
 
 Low / Optional priority (post-MVP)
 ---------------------------------
@@ -119,7 +119,7 @@ Low / Optional priority (post-MVP)
 
 11) Tests & CI
 	 - Why: Improve maintainability.
-	 - Acceptance criteria: Basic unit tests for critical services (geocoder wrapper and diveService); a CI workflow that runs lint and tests on PRs.
+ 	 - Acceptance criteria: Basic unit tests for critical services (geocoder wrapper and entriesService); a CI workflow that runs lint and tests on PRs.
 	 - Suggested files: `frontend/.github/workflows/ci.yml`, `frontend/src/__tests__/*`.
 
 12) README and deployment instructions
