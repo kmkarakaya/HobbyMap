@@ -62,14 +62,12 @@ export const geocodeLocation = async (placeOrLocation, countryHint) => {
 
     // We'll fetch a few results and pick the one that matches the country when possible
 
-    const headers = {
-      "User-Agent": "ScubaDivingMapApp/1.0",
-    };
-
+    // Browsers disallow setting the `User-Agent` header. Do not set custom
+    // headers here so the requests work in browser environments. Keep the
+    // request minimal and rely on Nominatim's default behaviour.
     const tryQuery = async (params) => {
       const res = await axios.get("https://nominatim.openstreetmap.org/search", {
         params,
-        headers,
       });
       return res.data;
     };
@@ -128,5 +126,37 @@ export const geocodeLocation = async (placeOrLocation, countryHint) => {
   } catch (error) {
     console.error("Geocoding error:", error);
     throw error;
+  }
+};
+
+/**
+ * Reverse geocode coordinates into a place and country using Nominatim
+ * @param {number} latitude
+ * @param {number} longitude
+ * @returns {Promise<{place: string, country: string}>}
+ */
+export const reverseGeocode = async (latitude, longitude) => {
+  try {
+    const res = await axios.get('https://nominatim.openstreetmap.org/reverse', {
+      params: {
+        lat: latitude,
+        lon: longitude,
+        format: 'json',
+        addressdetails: 1,
+      },
+    });
+    const data = res.data || {};
+  const addr = data.address || {};
+
+  // Choose a sensible display place name (city/town/village/county or fallback to display_name)
+  const placeName = addr.city || addr.town || addr.village || addr.county || data.display_name || '';
+  const countryName = addr.country || '';
+  const countryCode = (addr.country_code || '').toUpperCase();
+
+  return { place: placeName, country: countryName, countryCode };
+  } catch (err) {
+    console.warn('Reverse geocode failed:', err && err.message ? err.message : err);
+    // Fail gracefully — caller can decide what to do when reverse fails
+    return { place: '', country: '' };
   }
 };

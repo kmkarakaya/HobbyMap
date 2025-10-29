@@ -201,7 +201,14 @@ export const createEntry = async (entryData) => {
       console.log("Converted date to Date object:", newEntry.date);
     }
 
-    if (!newEntry.latitude || !newEntry.longitude) {
+    // Only attempt geocoding when latitude/longitude are strictly missing
+    // (do not treat 0 or empty-string as missing). This avoids unnecessary
+    // geocode attempts and reduces false-negative paths when callers set
+    // coordinates synchronously (e.g. MapPicker).
+    if (
+      newEntry.latitude === undefined || newEntry.latitude === null ||
+      newEntry.longitude === undefined || newEntry.longitude === null
+    ) {
       try {
         // Use place and country for geocoding (MVP)
         const place = newEntry.place || null;
@@ -219,6 +226,18 @@ export const createEntry = async (entryData) => {
       }
     }
 
+    // Defensive check: do not save entries without numeric coordinates. If
+    // geocoding failed to populate `latitude` and `longitude`, throw a
+    // descriptive error so the UI can surface a helpful message and the
+    // user can correct input instead of leaving invisible entries in DB.
+    if (
+      newEntry.latitude === undefined || newEntry.latitude === null ||
+      newEntry.longitude === undefined || newEntry.longitude === null ||
+      Number.isNaN(Number(newEntry.latitude)) || Number.isNaN(Number(newEntry.longitude))
+    ) {
+      throw new Error('Geocoding failed: unable to resolve location for provided place/country; please provide more detail or pick a location on the map.');
+    }
+
     // Ensure ownerId is present for rules that check it
     if (!newEntry.ownerId && newEntry.userId) {
       newEntry.ownerId = newEntry.userId;
@@ -229,15 +248,20 @@ export const createEntry = async (entryData) => {
     console.log("Final entry data to save:", newEntry);
 
   const docRef = await addDoc(entriesCollection, newEntry);
-  console.log("Document written with ID:", docRef.id);
+  console.log("Document written with ID:", docRef && docRef.id);
 
-    // Get the newly created document to return it with the ID
+    // Get the newly created document to return it with the ID. Be defensive:
+    // some environments or mocks may return a snapshot without data(), so
+    // handle that case gracefully and return at least the ID.
     const newDoc = await getDoc(docRef);
-    const data = newDoc.data();
+    const data = (newDoc && typeof newDoc.data === 'function') ? (newDoc.data() || {}) : {};
     console.log("Retrieved new document data:", data);
 
-    // Create the return object with proper handling of date
-    const returnData = { id: docRef.id, ...data, date: data.date?.toDate ? data.date.toDate() : data.date };
+    // Create the return object with proper handling of date. If data is
+    // missing, fall back to an empty object so we don't throw when reading
+    // properties like `date`.
+    const processedDate = data.date ? (data.date.toDate ? data.date.toDate() : data.date) : undefined;
+    const returnData = { id: docRef && docRef.id ? docRef.id : null, ...data, date: processedDate };
     console.log("Returning data:", returnData);
     return returnData;
   } catch (error) {

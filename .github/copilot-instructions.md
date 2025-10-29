@@ -174,6 +174,41 @@ npm install  # Takes ~5 seconds
 - No backend tests currently implemented
 - Manual testing required for Firebase authentication features
 
+## Notes for reviewers (branch: fix/add-entry-geolocation)
+
+If you are reviewing the `fix/add-entry-geolocation` branch, please note the following before merging:
+
+- The branch adds a small MapPicker component to allow users to pick coordinates when geocoding fails or when they prefer to select the location manually.
+- Geocoding behaviour was hardened: the `geocoder.js` helper no longer attempts to set a custom User-Agent header (browsers block this). A `reverseGeocode` helper was added.
+- `entriesService.createEntry` now enforces numeric latitude/longitude after geocoding and will throw a descriptive error if the location cannot be resolved. This prevents saving entries that would not render on the map.
+- Map component (`Map.js`) popup UX: added close button, Escape/outside-click handlers, hover-to-open with short hide timeout, and simplified popup content to values-only.
+- `EntryForm` was changed to avoid clobbering a user's in-progress edits when the incoming `initialData` object identity changes (it now initializes only when the entry id changes).
+- A focused unit test was added for `createEntry` geocoding behavior: `frontend/src/__tests__/createEntry.geocode.test.js`.
+
+Testing & verification steps (quick):
+
+1. Run unit tests in `frontend/`:
+
+```powershell
+cd frontend
+npm test -- --watchAll=false
+```
+
+2. Start dev server and manually exercise Add Entry flow and Map:
+
+```powershell
+cd frontend
+npm start
+```
+
+3. Verify the following UX behaviours:
+  - If geocoding fails, the Add Entry form surfaces a helpful message and offers "Pick location on map".
+  - After selecting coordinates via MapPicker, saved entries appear on the main map with markers.
+  - Edit Entry preserves typed input while background entry list refreshes occur.
+  - Popups can be closed via ×, Escape, and outside clicks; hovering keeps popup visible while pointer is over it.
+
+If you want, I can push this branch and create the PR for you once you've approved these doc changes.
+
 ## Timing Expectations
 
 - Frontend dependency install: ~60 seconds (NEVER CANCEL)

@@ -5,7 +5,7 @@ import EntryForm from "../components/EntryForm";
 
 const EditEntryPage = () => {
   const { id } = useParams();
-  const { getEntry, updateEntry, entries } = useFirebase();
+  const { getEntry, updateEntry } = useFirebase();
   const [entry, setEntry] = useState(null);
   const [loadingEntry, setLoadingEntry] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -24,7 +24,7 @@ const EditEntryPage = () => {
     };
 
   fetchEntry();
-  }, [id, getEntry, entries]);
+  }, [id, getEntry]);
 
   const handleSubmit = async (formData) => {
     try {
