@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useFirebase } from '../contexts/FirebaseContext';
 import { useNavigate } from 'react-router-dom';
 import './Map.css';
@@ -22,9 +22,21 @@ const FitBounds = ({ markers, isAnimating }) => {
   useEffect(() => {
     // Don't auto-fit bounds during animation - let the animation control the zoom
     if (!map || !markers || markers.length === 0 || isAnimating) return;
-    const latlngs = markers.map((m) => [Number(m.latitude), Number(m.longitude)]);
     try {
-      map.fitBounds(latlngs, { padding: [40, 40] });
+      if (markers.length === 1) {
+        // For a single marker, avoid fitBounds (can zoom too far in); set a
+        // reasonable view instead so users can still zoom out.
+        const m = markers[0];
+        const lat = Number(m.latitude);
+        const lon = Number(m.longitude);
+        // If lat/lon are valid, center the map with a medium zoom level
+        if (!Number.isNaN(lat) && !Number.isNaN(lon)) {
+          map.setView([lat, lon], Math.max(6, map.getZoom()));
+        }
+      } else {
+        const latlngs = markers.map((m) => [Number(m.latitude), Number(m.longitude)]);
+        map.fitBounds(latlngs, { padding: [40, 40] });
+      }
     } catch (e) {
       // ignore
     }
@@ -32,11 +44,29 @@ const FitBounds = ({ markers, isAnimating }) => {
   return null;
 };
 
-const MapRef = ({ setMapRef }) => {
+const MapRef = ({ setMapRef, onTileEvent }) => {
   const map = useMap();
   useEffect(() => {
     setMapRef(map);
-  }, [map, setMapRef]);
+
+    // Attach diagnostics to tile layers to help detect loading issues in the wild
+    try {
+      const layers = Object.values(map._layers || {}).filter((l) => l instanceof L.TileLayer);
+      layers.forEach((layer) => {
+        // tileload -> increment load count
+        layer.on('tileload', (ev) => {
+          if (onTileEvent) onTileEvent({ type: 'tileload', ev });
+        });
+        // tileerror -> report
+        layer.on('tileerror', (ev) => {
+          if (onTileEvent) onTileEvent({ type: 'tileerror', ev });
+        });
+      });
+    } catch (e) {
+      // ignore diagnostics failures
+    }
+
+  }, [map, setMapRef, onTileEvent]);
   return null;
 };
 
@@ -49,12 +79,17 @@ const EntryMap = () => {
   const [showAll, setShowAll] = useState(true);
   const [floatingPopup, setFloatingPopup] = useState(null);
   const leafletRef = useRef(null);
+  const [tileLoadCount, setTileLoadCount] = useState(0);
+  const [tileErrorCount, setTileErrorCount] = useState(0);
+  const [tileHint, setTileHint] = useState(false);
   // Refs for marker instances so we can open/close popups programmatically
   const markerRefs = useRef({});
   const isPlayingRef = useRef(false);
+  const floatingRef = useRef(null);
+  const hoverHideTimeoutRef = useRef(null);
   // Build marker list flexibly: support `latitude`/`longitude`, legacy `lat`/`lng`,
   // and nested `location` objects. Convert to Numbers and drop invalid coords.
-  const markers = (entries || [])
+  const markers = useMemo(() => (entries || [])
     .map((e) => {
       if (!e) return null;
 
@@ -70,8 +105,8 @@ const EntryMap = () => {
 
       // Return a normalized marker object with numeric latitude/longitude
       return { ...e, latitude: lat, longitude: lon };
-    })
-    .filter(Boolean);
+  })
+  .filter(Boolean), [entries]);
 
   // Debugging aid: log entry vs marker counts so it's easy to diagnose why some
   // entries are not rendered as markers when running locally.
@@ -83,6 +118,53 @@ const EntryMap = () => {
       // ignore logging errors
     }
   }, [entries, markers]);
+
+  // If we don't observe any tile loads or errors within a short time, show
+  // a helpful hint to the user — common causes are ad-blockers, CSP, or
+  // offline/network issues. We use a timeout to avoid false positives.
+  React.useEffect(() => {
+    const t = setTimeout(() => {
+      if (leafletRef.current && tileLoadCount === 0 && tileErrorCount === 0) {
+        setTileHint(true);
+      }
+    }, 1800);
+    return () => clearTimeout(t);
+  }, [leafletRef, tileLoadCount, tileErrorCount]);
+
+  // Close floating popup on Escape key or when clicking/tapping outside it.
+  // This hook must run on every render (not conditionally) so place it
+  // before any early returns to satisfy the rules-of-hooks.
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+    if (!floatingPopup) return; // only attach when popup is open
+
+    const onKey = (e) => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        setFloatingPopup(null);
+      }
+    };
+
+    const onDocPointer = (e) => {
+      try {
+        // If the click / touch event target is not inside the popup, close it
+        if (floatingRef.current && !floatingRef.current.contains(e.target)) {
+          setFloatingPopup(null);
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDocPointer);
+    document.addEventListener('touchstart', onDocPointer);
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDocPointer);
+      document.removeEventListener('touchstart', onDocPointer);
+    };
+  }, [floatingPopup]);
 
   if (loading) return <div className="loading">Loading map...</div>;
 
@@ -229,6 +311,8 @@ const EntryMap = () => {
     stopAnimation();
   };
 
+  // Close floating popup on Escape key or when clicking/tapping outside it.
+
   const resetAction = () => {
     showAllAction();
   };
@@ -284,10 +368,17 @@ const EntryMap = () => {
           scrollWheelZoom={true}
           style={{ height: '100%', width: '100%' }}
         >
-          <MapRef setMapRef={(map) => { leafletRef.current = map; }} />
+          <MapRef setMapRef={(map) => { leafletRef.current = map; }} onTileEvent={(ev) => {
+            if (ev && ev.type === 'tileload') setTileLoadCount((c) => c + 1);
+            if (ev && ev.type === 'tileerror') setTileErrorCount((c) => c + 1);
+          }} />
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            eventHandlers={{
+              tileload: () => { setTileLoadCount((c) => c + 1); },
+              tileerror: () => { setTileErrorCount((c) => c + 1); }
+            }}
           />
 
           {markers.map((m) => {
@@ -310,10 +401,37 @@ const EntryMap = () => {
                   click: (e) => {
                     try {
                       const p = leafletRef.current.latLngToContainerPoint(e.latlng);
+                      // Cancel any hover-hide timeout
+                      if (hoverHideTimeoutRef.current) {
+                        clearTimeout(hoverHideTimeoutRef.current);
+                        hoverHideTimeoutRef.current = null;
+                      }
                       setFloatingPopup({ entry: m, x: p.x, y: p.y });
                     } catch (err) {
                       // ignore
                     }
+                  },
+                  mouseover: (e) => {
+                    try {
+                      const p = leafletRef.current.latLngToContainerPoint(e.latlng);
+                      if (hoverHideTimeoutRef.current) {
+                        clearTimeout(hoverHideTimeoutRef.current);
+                        hoverHideTimeoutRef.current = null;
+                      }
+                      setFloatingPopup({ entry: m, x: p.x, y: p.y });
+                    } catch (err) {}
+                  },
+                  mouseout: (e) => {
+                    try {
+                      // Start a short timeout to hide the popup when the pointer
+                      // leaves the marker. If the pointer re-enters the marker
+                      // or the popup before the timeout, the timeout is cleared.
+                      if (hoverHideTimeoutRef.current) clearTimeout(hoverHideTimeoutRef.current);
+                      hoverHideTimeoutRef.current = setTimeout(() => {
+                        setFloatingPopup(null);
+                        hoverHideTimeoutRef.current = null;
+                      }, 300);
+                    } catch (err) {}
                   }
                 }}
               />
@@ -321,24 +439,70 @@ const EntryMap = () => {
           })}
 
           {floatingPopup && (
-            <div className="hm-floating-popup" style={{ left: floatingPopup.x, top: floatingPopup.y }}>
+            <div
+              className="hm-floating-popup"
+              ref={floatingRef}
+              style={{ left: floatingPopup.x, top: floatingPopup.y }}
+              onMouseEnter={() => {
+                // When pointer enters the popup, cancel any pending hide timeout
+                if (hoverHideTimeoutRef.current) {
+                  clearTimeout(hoverHideTimeoutRef.current);
+                  hoverHideTimeoutRef.current = null;
+                }
+              }}
+              onMouseLeave={() => {
+                // When pointer leaves the popup, start the short hide timeout
+                if (hoverHideTimeoutRef.current) clearTimeout(hoverHideTimeoutRef.current);
+                hoverHideTimeoutRef.current = setTimeout(() => {
+                  setFloatingPopup(null);
+                  hoverHideTimeoutRef.current = null;
+                }, 300);
+              }}
+            >
               <div className="popup-content">
+                <button
+                  className="popup-close"
+                  aria-label="Close popup"
+                  onClick={() => setFloatingPopup(null)}
+                >
+                  ×
+                </button>
                 <h3>{floatingPopup.entry.title || 'Untitled Entry'}</h3>
-                <p><strong>Activity:</strong> {floatingPopup.entry.hobby || 'Not specified'}</p>
+                {/* Show only the field values (no labels) as requested */}
+                <p className="popup-activity">{floatingPopup.entry.hobby || 'Not specified'}</p>
                 {(floatingPopup.entry.place || floatingPopup.entry.country) && (
-                  <p><strong>Location:</strong> {[floatingPopup.entry.place, floatingPopup.entry.country].filter(Boolean).join(', ')}</p>
+                  <p className="popup-location">{[floatingPopup.entry.place, floatingPopup.entry.country].filter(Boolean).join(', ')}</p>
                 )}
-                {floatingPopup.entry.date && <p><strong>Date:</strong> {new Date(floatingPopup.entry.date).toLocaleDateString()}</p>}
+                {floatingPopup.entry.date && <p className="popup-date">{new Date(floatingPopup.entry.date).toLocaleDateString()}</p>}
                 {(floatingPopup.entry.notes || floatingPopup.entry.note) && (
-                  <p className="popup-notes"><strong>Notes:</strong>{' '}
-                    {(floatingPopup.entry.notes || floatingPopup.entry.note).split('\n').map((line, idx, arr) => (
+                  <div className="popup-notes">{
+                    (floatingPopup.entry.notes || floatingPopup.entry.note).split('\n').map((line, idx, arr) => (
                       <span key={idx}>{line}{idx < arr.length - 1 ? <br /> : null}</span>
-                    ))}
-                  </p>
+                    ))
+                  }</div>
                 )}
                 <div className="popup-actions">
                   <button className="edit-btn" onClick={() => navigate(`/edit/${floatingPopup.entry.id}`)}>Edit</button>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tile diagnostics: show if we detect errors so developers can debug */}
+          {(tileErrorCount > 0) && (
+            <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 1200, background: 'rgba(255,255,255,0.9)', padding: '8px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ color: '#b00020', fontWeight: 600 }}>Tile load errors detected</div>
+              <div style={{ fontSize: 12 }}>Errors: {tileErrorCount} • Loaded: {tileLoadCount}</div>
+              <div style={{ marginTop: 6, fontSize: 12 }}>If you see many errors, check network requests to OpenStreetMap tiles or an ad-blocker/CSP.</div>
+            </div>
+          )}
+
+          {tileHint && tileErrorCount === 0 && (
+            <div style={{ position: 'absolute', right: 12, bottom: 12, zIndex: 1200, background: 'rgba(255,255,255,0.95)', padding: '8px 10px', borderRadius: 6, border: '1px solid rgba(0,0,0,0.06)' }}>
+              <div style={{ color: '#0b57a4', fontWeight: 600 }}>Map tiles not loading</div>
+              <div style={{ fontSize: 12, marginTop: 6 }}>We haven't observed any tile loads. Common causes: ad-blocker, Content Security Policy, or offline network access.</div>
+              <div style={{ marginTop: 8, fontSize: 12 }}>You can verify tile serving by opening this URL in a browser:
+                <div style={{ marginTop: 6 }}><a target="_blank" rel="noreferrer" href="https://a.tile.openstreetmap.org/10/511/340.png">https://a.tile.openstreetmap.org/10/511/340.png</a></div>
               </div>
             </div>
           )}

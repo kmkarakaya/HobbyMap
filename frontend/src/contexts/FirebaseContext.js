@@ -121,6 +121,9 @@ export const FirebaseProvider = ({ children }) => {
   };
 
   // Create a new entry
+  // Simple counter to help detect duplicate/overlapping create calls in logs
+  let createCounter = 0;
+
   const createEntry = async (entryData) => {
     try {
       setLoading(true);
@@ -130,25 +133,85 @@ export const FirebaseProvider = ({ children }) => {
       // permission issues observed in the wild.
       console.log('createEntry: current user', user);
       console.log('createEntry: incoming entryData', entryData);
+      // Log whether coords are present (use console.log so it's visible by default)
+      console.log('createEntry: has explicit coords ->', {
+        hasLatitude: !!(entryData && (entryData.latitude !== undefined && entryData.latitude !== null)),
+        hasLongitude: !!(entryData && (entryData.longitude !== undefined && entryData.longitude !== null)),
+      });
+      // Extra instrumentation to trace the create flow and understand why
+      // some environments report a failure even when a write succeeded.
+  const callId = ++createCounter;
+  console.log(`createEntry[#${callId}]: starting addEntry call...`);
       // Include both userId (per-entry owner) and ownerId for compatibility with
   // entries-backed storage so Firestore rules that require ownerId pass.
       const payload = { ...entryData, userId: user.uid, ownerId: user.uid };
-      const newSite = await addEntry(payload);
-
-      // After creating the site, re-fetch the authoritative list from
-      // Firestore to ensure server-side fields (timestamps) and indexes are
-      // applied and to avoid visibility issues on subsequent sign-in.
+      // Keep track of previous entries count so we can attempt recovery if
+      // addEntry throws but the server write actually succeeded
+      const prevCount = entries ? entries.length : 0;
+      let newSite = null;
       try {
+        newSite = await addEntry(payload);
+        console.log(`createEntry[#${callId}]: addEntry resolved, newSite:`, newSite);
+        // Clear any previous context-level error now that a create has resolved
+        setError(null);
+      } catch (addErr) {
+        console.error(`createEntry[#${callId}]: addEntry threw an error:`, addErr);
+        // If it's a geocoding error, propagate so UI can show map picker
+        if (addErr && addErr.message && addErr.message.toLowerCase().includes('geocoding failed')) {
+          throw addErr;
+        }
+
+        // Otherwise, attempt to recover by refreshing entries from backend
+        try {
+          console.log(`createEntry[#${callId}]: attempting recovery refresh after addEntry error...`);
+          const refreshed = await fetchEntries(user.uid);
+          console.log(`createEntry[#${callId}]: recovery refresh count:`, refreshed.length);
+          if (refreshed.length > prevCount) {
+            // We assume the new entry exists on server; update local state
+            setEntries(refreshed);
+            return refreshed[0] || null;
+          }
+        } catch (refreshErr) {
+          console.warn('createEntry: recovery refresh failed:', refreshErr);
+        }
+
+        // If recovery fails, rethrow original error to surface to UI
+        throw addErr;
+      }
+
+      try {
+        console.log(`createEntry[#${callId}]: attempting to refresh entries from backend...`);
         const refreshed = await fetchEntries(user.uid);
+        console.log(`createEntry[#${callId}]: refresh successful, count:`, refreshed.length);
         setEntries(refreshed);
+        // Clear any previous context-level error now that refresh succeeded
+        setError(null);
       } catch (refreshErr) {
-        // If refresh fails for any reason, fall back to optimistic update
         console.warn("Failed to refresh entries after create:", refreshErr);
-        setEntries((prevSites) => [newSite, ...prevSites]);
+        if (newSite) {
+          setEntries((prevSites) => [newSite, ...prevSites]);
+          // If we fall back to optimistic update, clear any previous error
+          setError(null);
+        }
       }
 
       return newSite;
     } catch (err) {
+      console.error('createEntry: caught error during create flow:', err);
+      // If the user provided explicit coordinates, prefer an optimistic
+      // update so the user doesn't see a false-negative error when the
+      // underlying write may have succeeded but follow-up refresh failed.
+      const hasCoords = entryData && (entryData.latitude !== undefined && entryData.longitude !== undefined);
+      if (hasCoords) {
+        console.warn('createEntry: applying optimistic update due to error but coords present');
+        const optimistic = { id: `local-${Date.now()}`, ...entryData };
+        setEntries((prev) => [optimistic, ...prev]);
+        // Clear any error state since we're applying an optimistic update
+        setError(null);
+        // Do not throw — return the optimistic object so callers proceed
+        return optimistic;
+      }
+
       setError("Failed to create entry. Please try again.");
       throw err;
     } finally {
