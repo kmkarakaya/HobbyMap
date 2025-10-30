@@ -10,9 +10,13 @@ import {
   serverTimestamp,
   query,
   orderBy,
+  where,
 } from "firebase/firestore";
 import { db } from "./firebase";
-import { geocodeLocation } from "./geocoder";
+// Note: geocoder is required lazily inside functions to allow test-time mocking
+// of the geocoder module (some test runners don't transform repo-root files the
+// same way as src/, so importing at module top-level can prevent mocks from
+// being applied). We require it inside functions below.
 
 const COLLECTION_NAME = "entries";
 const entriesCollection = collection(db, COLLECTION_NAME);
@@ -65,9 +69,24 @@ export const createEntry = async (entryData) => {
     const place = entryData.place || null;
     const country = entryData.country || null;
     if (place || country) {
-      const coordinates = await geocodeLocation(place, country);
-      entryData.latitude = coordinates.latitude;
-      entryData.longitude = coordinates.longitude;
+      // require geocoder lazily so tests can mock the module before this code runs
+      const { geocodeLocation } = require('./geocoder');
+      let coordinates;
+      try {
+        coordinates = await geocodeLocation(place, country);
+      } catch (err) {
+        // Normalize geocoding errors to a descriptive message for callers/tests
+        throw new Error(`Geocoding failed: ${err && err.message ? err.message : err}`);
+      }
+
+      const lat = Number(coordinates && coordinates.latitude);
+      const lon = Number(coordinates && coordinates.longitude);
+      if (!isFinite(lat) || !isFinite(lon)) {
+        throw new Error('Geocoding failed: coordinates not found');
+      }
+
+      entryData.latitude = lat;
+      entryData.longitude = lon;
     }
 
     if (typeof entryData.date === "string") {
@@ -101,9 +120,23 @@ export const updateEntry = async (id, entryData) => {
     const place = entryData.place || null;
     const country = entryData.country || null;
     if (place || country) {
-      const coordinates = await geocodeLocation(place, country);
-      entryData.latitude = coordinates.latitude;
-      entryData.longitude = coordinates.longitude;
+      // require geocoder lazily so tests can mock the module before this code runs
+      const { geocodeLocation } = require('./geocoder');
+      let coordinates;
+      try {
+        coordinates = await geocodeLocation(place, country);
+      } catch (err) {
+        throw new Error(`Geocoding failed: ${err && err.message ? err.message : err}`);
+      }
+
+      const lat = Number(coordinates && coordinates.latitude);
+      const lon = Number(coordinates && coordinates.longitude);
+      if (!isFinite(lat) || !isFinite(lon)) {
+        throw new Error('Geocoding failed: coordinates not found');
+      }
+
+      entryData.latitude = lat;
+      entryData.longitude = lon;
     }
 
     if (typeof entryData.date === "string") {
