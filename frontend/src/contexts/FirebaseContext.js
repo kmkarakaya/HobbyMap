@@ -57,8 +57,16 @@ export const FirebaseProvider = ({ children }) => {
       setEntries(sites);
       setError(null);
     } catch (err) {
-      console.error("FirebaseContext: Retry failed:", err);
-      setError("Failed to load entries. Please try again.");
+        console.error("FirebaseContext: Retry failed:", err);
+        // Surface Firebase error code/message if available to aid diagnosis
+        const code = err && err.code ? ` (${err.code})` : '';
+        const msg = err && err.message ? `${err.message}${code}` : `Failed to load entries.${code}`;
+        // If permission denied, provide a friendlier hint for migration/ownership issues
+        if (err && err.code === 'permission-denied') {
+          setError('Failed to load entries: permission denied. Ensure your entries documents include a matching userId or your user has access.');
+        } else {
+          setError(msg || 'Failed to load entries. Please try again.');
+        }
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,13 @@ export const FirebaseProvider = ({ children }) => {
           setError(null);
         } catch (err) {
           console.error("FirebaseContext: Error loading user's entries:", err);
-          setError("Failed to load entries. Please try again.");
+          if (err && err.code === 'permission-denied') {
+            setError('Failed to load entries: permission denied. Your stored entries may be missing the `userId` field or rules prevent access.');
+          } else {
+            const code = err && err.code ? ` (${err.code})` : '';
+            const msg = err && err.message ? `${err.message}${code}` : 'Failed to load entries. Please try again.';
+            setError(msg);
+          }
         } finally {
           setLoading(false);
         }
